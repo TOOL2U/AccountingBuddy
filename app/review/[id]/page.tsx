@@ -1,19 +1,29 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function ReviewPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showToast, setShowToast] = useState(false);
+  const [ocrText, setOcrText] = useState<string>('');
 
-  // Mock data pre-filled
+  // Mock data pre-filled (will be replaced by AI extraction in Stage 2)
   const [formData, setFormData] = useState({
     date: '10/23/2025',
     vendor: 'HomePro Samui',
     amount: '1245',
     category: 'EXP - Construction - Structure',
   });
+
+  // Get OCR text from URL parameter
+  useEffect(() => {
+    const text = searchParams.get('text');
+    if (text) {
+      setOcrText(decodeURIComponent(text));
+    }
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -54,6 +64,21 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
             Review and edit the extracted information before sending to your sheet
           </p>
         </div>
+
+        {/* OCR Text Display (for debugging/verification) */}
+        {ocrText && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200">
+            <p className="text-xs font-medium text-gray-500 mb-2">
+              Extracted Text (OCR):
+            </p>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
+              {ocrText}
+            </p>
+            <p className="text-xs text-gray-500 mt-2 italic">
+              In Stage 2, AI will automatically parse this into the fields below.
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Date Field */}
