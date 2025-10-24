@@ -70,3 +70,21 @@ Visit the following pages to test the UI:
 
 All buttons currently show mock alerts. API integration will be added in subsequent stages.
 
+## 📚 Documentation
+
+Complete project documentation is available in the `/docs` folder:
+
+- **[Master Onboarding Guide](docs/MASTER_ONBOARDING_PROMPT.md)** - Complete project overview and build instructions
+- **[Security Guidelines](docs/SECURITY.md)** - API key protection and security best practices  
+- **[Testing Documentation](docs/TESTING.md)** - End-to-end acceptance testing procedures
+- **[Build Prompts](docs/prompts/)** - Staged development instructions (00-04)
+- **[Project Status Report](PROJECT_STATUS_REPORT.md)** - Current progress and engineering review
+
+### Development Stages
+Refer to `/docs/prompts/` for detailed implementation guides:
+- `00_setup_ui.txt` - UI scaffold ✅ **COMPLETE**
+- `01_ocr_api.txt` - Google Vision OCR ✅ **COMPLETE** 
+- `02_extract_api.txt` - OpenAI extraction ✅ **COMPLETE**
+- `03_sheets_webhook.txt` - Google Sheets integration ⏳ **NEXT**
+- `04_polish_and_tests.txt` - Production polish ⏳ **PENDING**
+
