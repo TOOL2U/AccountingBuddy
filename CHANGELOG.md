@@ -9,6 +9,120 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.0.0-final] - 2025-10-24
+
+### Stage 6 - Dropdown Selection & Comment Guidance (October 24, 2025)
+
+#### Added
+- **Comment-Guided AI Extraction:**
+  - Optional comment field on upload page to guide AI categorization
+  - Comment context integrated into OpenAI extraction prompt
+  - Contextual help text and examples for users
+  - Comment passed through entire extraction pipeline
+
+- **Fuzzy Matching System:**
+  - `utils/matchOption.ts` - Comprehensive fuzzy matching utility
+  - Levenshtein distance algorithm for string similarity (0-1 score)
+  - Keyword-based matching with exact, contains, and word boundary matching
+  - Field-specific matchers: `matchProperty()`, `matchTypeOfOperation()`, `matchTypeOfPayment()`
+  - `normalizeDropdownFields()` - Validates and normalizes all dropdown fields
+  - Confidence scoring with 0.8 threshold for "matched" status
+
+- **Canonical Dropdown Configuration:**
+  - `config/options.json` - Centralized dropdown options and keyword mappings
+  - 5 properties: Sia Moon, Alesia House, Villa 1, Villa 2, Villa 3
+  - 30+ operation types covering expenses, income, construction, admin, etc.
+  - 5 payment types: Cash, Bank transfer, Card, Check, Mobile payment
+  - Comprehensive keyword mappings for intelligent matching
+
+- **Review Page Enhancements:**
+  - Converted Property, Type of Operation, and Type of Payment to dropdown selects
+  - Dynamic dropdown options loaded from `/config/options.json`
+  - Confidence badges: "⚠️ Needs review" for confidence < 0.8
+  - Visual indicators for uncertain matches (yellow badge)
+  - Confidence scores tracked and displayed per field
+
+- **Webhook Validation:**
+  - Pre-webhook dropdown normalization in `/api/sheets/route.ts`
+  - Ensures only valid canonical options are sent to Google Sheets
+  - Fallback defaults: "Sia Moon" (property), "Cash" (payment), "Uncategorized" (operation)
+
+#### Changed
+- Enhanced OpenAI extraction prompt with dropdown options list
+- Updated `/app/upload/page.tsx` with comment textarea
+- Updated `/app/api/extract/route.ts` with comment context and normalization
+- Updated `/app/review/[id]/page.tsx` with dropdowns and confidence badges
+- Updated `/app/api/sheets/route.ts` with final validation layer
+- Updated `README.md` with key features section
+- Updated `GOOGLE_SHEETS_SETUP.md` with comment and fuzzy matching details
+
+#### Files Modified
+- `app/upload/page.tsx` - Added comment field
+- `app/api/extract/route.ts` - Enhanced AI extraction with comment context
+- `app/review/[id]/page.tsx` - Converted to dropdowns with confidence badges
+- `app/api/sheets/route.ts` - Added webhook validation
+- `GOOGLE_SHEETS_SETUP.md` - Updated documentation
+- `README.md` - Added feature descriptions
+
+#### Files Created
+- `config/options.json` - Canonical dropdown options and keyword mappings
+- `utils/matchOption.ts` - Fuzzy matching utility (524 lines)
+
+---
+
+### Stage 5 - CSV Schema Alignment (October 24, 2025)
+
+#### Added
+- **10-Field Accounting Schema:**
+  - Expanded from 4 fields (date, vendor, amount, category) to 10 fields
+  - New schema: day, month, year, property, typeOfOperation, typeOfPayment, detail, ref, debit, credit
+  - Matches "Accounting Buddy P&L 2025.xlsx" spreadsheet structure
+
+- **CSV Integration:**
+  - `/docs/Accounting_Buddy_P&L_2025.csv` - Canonical schema reference
+  - CSV serves as source of truth for schema and dropdown values
+  - Analyzed CSV to extract unique dropdown values
+  - Empty Column A preserved for row numbers/spacing
+
+- **Enhanced AI Extraction:**
+  - Updated OpenAI prompt with real-world examples from CSV
+  - Improved date parsing (split into day/month/year)
+  - Added property recognition (Sia Moon, Alesia House)
+  - Enhanced operation type categorization
+  - Improved payment type detection
+  - Separate debit/credit fields with proper handling
+
+- **Validation Updates:**
+  - Updated `utils/validatePayload.ts` for 10-field schema
+  - New interfaces: `ReceiptPayload`, `ValidatedPayload`
+  - Comprehensive field validation and sanitization
+  - Currency symbol and comma removal from amounts
+
+#### Changed
+- Updated `/app/api/extract/route.ts` with 10-field extraction
+- Updated `/app/review/[id]/page.tsx` with 10-field form
+- Updated `/app/upload/page.tsx` with 10-field URL params
+- Updated `/app/api/sheets/route.ts` with 10-field webhook payload
+- Updated `GOOGLE_SHEETS_SETUP.md` with new schema structure
+- Updated `README.md` with schema details
+
+#### Files Modified
+- `app/api/extract/route.ts` - 10-field extraction
+- `app/review/[id]/page.tsx` - 10-field form
+- `app/upload/page.tsx` - 10-field URL params
+- `app/api/sheets/route.ts` - 10-field webhook
+- `utils/validatePayload.ts` - 10-field validation
+- `GOOGLE_SHEETS_SETUP.md` - Updated schema documentation
+- `README.md` - Updated purpose and flow
+
+#### Files Created
+- `docs/Accounting Buddy P&L 2025.xlsx` - Original spreadsheet reference
+- `docs/Accounting Buddy P&L 2025 - Accounting .csv` - Canonical CSV schema
+
+---
+
 ### Stage 4 - Polish & Final QA (October 24, 2025)
 
 #### Added
@@ -48,7 +162,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0-rc1] - 2025-10-24
+## [1.0.0-rc1] - 2025-10-24 (Superseded by 1.0.0-final)
 
 ### Stage 3 - Google Sheets Webhook Integration (October 24, 2025)
 
@@ -227,10 +341,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Links
 
 - **Repository:** https://github.com/TOOL2U/AccountingBuddy
-- **Release Tag:** v1.0.0-rc1
+- **Release Tag:** v1.0.0-final
+- **Production URL:** https://accounting-buddy-seven.vercel.app
 - **Documentation:** `/docs` folder
 - **Setup Guide:** `GOOGLE_SHEETS_SETUP.md`
-- **Test Report:** `testing/test-results.md`
+- **Testing Guide:** `TESTING.md`
+- **Security Guide:** `SECURITY.md`
+- **Deployment Guide:** `DEPLOYMENT.md`
 
 ---
 
@@ -244,24 +361,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Notes
 
-### Known Limitations
+### Known Limitations (Phase 1)
 - Receipt images are not persisted (in-memory only)
 - Inbox shows mock data (not connected to backend)
 - No user authentication
 - No receipt editing after submission
+- Single-user design (no multi-tenancy)
 
-### Future Enhancements
-- Receipt image storage (cloud storage)
+### Future Enhancements (Phase 2)
+- Database integration (PostgreSQL/Supabase)
+- User authentication (Clerk/Auth0/Supabase Auth)
+- Receipt image storage (S3/Cloudinary/Supabase Storage)
 - Receipt history and editing
-- Export functionality (CSV, Excel)
-- Analytics dashboard
+- Export functionality (CSV, Excel, PDF)
+- Analytics dashboard with visualizations
 - Multi-user support with authentication
 - Receipt search and filtering
-- Bulk upload support
+- Batch upload support
 - Mobile app (React Native)
+- Recurring transactions
+- Advanced reporting
 
 ---
 
-**Last Updated:** October 24, 2025  
-**Version:** 1.0.0-rc1 → 1.0.0-final (in progress)
+**Last Updated:** October 24, 2025
+**Version:** 1.0.0-final
+**Status:** ✅ Production-Ready
+
+---
+
+## Version History Summary
+
+| Version | Date | Description | Commit |
+|---------|------|-------------|--------|
+| 1.0.0-final | 2025-10-24 | Schema expansion + dropdown enhancements | `dff3f9e` |
+| 1.0.0-rc1 | 2025-10-24 | MVP complete (Stages 0-4) | Earlier |
+| 0.4.0 | 2025-10-24 | Stage 4 - Polish & optimization | Earlier |
+| 0.3.0 | 2025-10-24 | Stage 3 - Google Sheets integration | Earlier |
+| 0.2.0 | 2025-10-24 | Stage 2 - AI extraction | Earlier |
+| 0.1.0 | 2025-10-23 | Stage 1 - OCR integration | Earlier |
+| 0.0.1 | 2025-10-23 | Stage 0 - UI scaffold | Earlier |
 
