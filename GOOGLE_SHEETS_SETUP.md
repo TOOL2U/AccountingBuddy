@@ -11,12 +11,19 @@ This guide will help you set up the Google Sheets webhook integration for Accoun
 
 1. Go to [Google Sheets](https://sheets.google.com)
 2. Create a new spreadsheet or open an existing one
-3. Name it something like "Accounting Buddy - Receipts"
-4. Add column headers in the first row:
-   - Column A: **Date**
-   - Column B: **Vendor**
-   - Column C: **Amount**
-   - Column D: **Category**
+3. Name it something like "Accounting Buddy P&L 2025"
+4. Create a sheet named **"Accounting"** (or use the default sheet and rename it)
+5. Add column headers in the first row:
+   - Column A: **Day** (e.g., "27")
+   - Column B: **Month** (e.g., "Feb", "Oct")
+   - Column C: **Year** (e.g., "2025")
+   - Column D: **Property** (e.g., "Sia Moon", "Villa 1")
+   - Column E: **Type of Operation** (e.g., "EXP - Construction - Materials")
+   - Column F: **Type of Payment** (e.g., "Cash", "Bank transfer")
+   - Column G: **Detail** (e.g., "Materials purchase")
+   - Column H: **Ref** (e.g., Invoice number - optional)
+   - Column I: **Debit** (Expense amount)
+   - Column J: **Credit** (Income amount)
 
 ## Step 2: Open Apps Script Editor
 
@@ -33,36 +40,48 @@ function doPost(e) {
   // IMPORTANT: Replace this with your own secret
   // Generate a secure secret with: openssl rand -base64 32
   const secret = "YOUR_SECRET_HERE";
-  
+
   try {
     // Parse the incoming request
     const params = JSON.parse(e.postData.contents);
     const incomingSecret = e.parameter.secret;
-    
+
     // Validate the webhook secret
     if (incomingSecret !== secret) {
       return ContentService
         .createTextOutput("Unauthorized")
         .setMimeType(ContentService.MimeType.TEXT);
     }
-    
-    // Get the active sheet (or specify a sheet name)
-    const sheet = SpreadsheetApp.getActiveSheet();
-    // Alternative: const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Transactions");
-    
-    // Append the data as a new row
+
+    // Get the "Accounting" sheet
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Accounting");
+
+    // If sheet doesn't exist, create it
+    if (!sheet) {
+      return ContentService
+        .createTextOutput("Error: 'Accounting' sheet not found")
+        .setMimeType(ContentService.MimeType.TEXT);
+    }
+
+    // Append the data as a new row (10 fields in correct order)
     sheet.appendRow([
-      params.date,
-      params.vendor,
-      params.amount,
-      params.category
+      params.day,
+      params.month,
+      params.year,
+      params.property,
+      params.typeOfOperation,
+      params.typeOfPayment,
+      params.detail,
+      params.ref,
+      params.debit,
+      params.credit
     ]);
-    
+
     // Return success response
     return ContentService
       .createTextOutput("Success")
       .setMimeType(ContentService.MimeType.TEXT);
-      
+
   } catch (error) {
     // Log error and return failure response
     Logger.log("Error: " + error.toString());
@@ -146,9 +165,9 @@ SHEETS_WEBHOOK_SECRET=your_generated_secret_here
 - Regenerate the secret and update both the Apps Script and `.env.local`
 
 ### Data not appearing in the sheet
-- Check that your sheet has the correct column headers
+- Check that your sheet has the correct column headers (10 columns: Day, Month, Year, Property, Type of Operation, Type of Payment, Detail, Ref, Debit, Credit)
 - Check the Apps Script execution logs for errors
-- Make sure the sheet name matches if you're using `getSheetByName()`
+- Make sure the sheet is named "Accounting" (case-sensitive)
 
 ## Security Notes
 
@@ -158,19 +177,22 @@ SHEETS_WEBHOOK_SECRET=your_generated_secret_here
 - ✅ The Apps Script runs under your Google account permissions
 - ⚠️ Anyone with the webhook URL and secret can add data to your sheet
 
-## Advanced: Using a Specific Sheet
+## Advanced: Using a Different Sheet Name
 
-If you want to write to a specific sheet (not the active one), modify the Apps Script:
+The default configuration uses a sheet named **"Accounting"**. If you want to use a different sheet name:
+
+1. Rename your sheet in Google Sheets
+2. Update the Apps Script code:
 
 ```javascript
-// Instead of:
-const sheet = SpreadsheetApp.getActiveSheet();
+// Change this line:
+const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Accounting");
 
-// Use:
-const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Transactions");
+// To your sheet name:
+const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("YourSheetName");
 ```
 
-Replace `"Transactions"` with your sheet name.
+3. Save and redeploy the Apps Script
 
 ## Need Help?
 

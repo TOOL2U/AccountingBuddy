@@ -125,16 +125,17 @@ export default function UploadPage() {
       // Get extracted data
       const dataToPass = extractData.data || extractData;
 
-      // Check cache for vendor-category mapping
-      if (dataToPass.vendor && dataToPass.vendor.trim()) {
-        const cachedCategory = getCachedCategory(dataToPass.vendor);
-        if (cachedCategory) {
-          console.log(`Using cached category "${cachedCategory}" for vendor "${dataToPass.vendor}"`);
-          dataToPass.category = cachedCategory;
-        } else if (dataToPass.category && dataToPass.category !== 'Uncategorized') {
-          // Cache the AI-extracted category for future use
-          cacheVendorCategory(dataToPass.vendor, dataToPass.category);
-          console.log(`Cached category "${dataToPass.category}" for vendor "${dataToPass.vendor}"`);
+      // Check cache for detail-typeOfOperation mapping (similar to vendor-category)
+      // Note: We're using detail as the key (like vendor) and typeOfOperation as the value (like category)
+      if (dataToPass.detail && dataToPass.detail.trim()) {
+        const cachedOperation = getCachedCategory(dataToPass.detail);
+        if (cachedOperation) {
+          console.log(`Using cached operation type "${cachedOperation}" for detail "${dataToPass.detail}"`);
+          dataToPass.typeOfOperation = cachedOperation;
+        } else if (dataToPass.typeOfOperation && dataToPass.typeOfOperation !== 'Uncategorized') {
+          // Cache the AI-extracted operation type for future use
+          cacheVendorCategory(dataToPass.detail, dataToPass.typeOfOperation);
+          console.log(`Cached operation type "${dataToPass.typeOfOperation}" for detail "${dataToPass.detail}"`);
         }
       }
 

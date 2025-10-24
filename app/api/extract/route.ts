@@ -4,20 +4,32 @@ import { NextRequest, NextResponse } from 'next/server';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
-// Fallback data structure
+// Fallback data structure - expanded schema
 const FALLBACK_DATA = {
-  date: '',
-  vendor: '',
-  amount: '',
-  category: 'Uncategorized',
+  day: '',
+  month: '',
+  year: '',
+  property: 'Sia Moon',
+  typeOfOperation: 'Uncategorized',
+  typeOfPayment: '',
+  detail: '',
+  ref: '',
+  debit: 0,
+  credit: 0,
 };
 
-// Type for extracted data
+// Type for extracted data - expanded schema
 interface ExtractedData {
-  date: string;
-  vendor: string;
-  amount: string;
-  category: string;
+  day: string;
+  month: string;
+  year: string;
+  property: string;
+  typeOfOperation: string;
+  typeOfPayment: string;
+  detail: string;
+  ref: string;
+  debit: number;
+  credit: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -67,21 +79,59 @@ export async function POST(request: NextRequest) {
 
 async function callOpenAI(text: string): Promise<ExtractedData> {
   try {
-    const prompt = `Extract structured data from this receipt text: ${text}
+    const currentDate = new Date();
+    const prompt = `Extract structured accounting data in JSON for this text:
+"${text}"
 
-Return JSON only with the following keys:
+Output fields:
 {
-  "date": "MM/DD/YYYY",
-  "vendor": "<string>",
-  "amount": "<number>",
-  "category": "<string: e.g., EXP - Construction - Structure or Uncategorized>"
+  "day": "<string: day number, e.g., '27'>",
+  "month": "<string: 3-letter month, e.g., 'Feb', 'Oct'>",
+  "year": "<string: 4-digit year, e.g., '2025'>",
+  "property": "<string: property name, e.g., 'Sia Moon', 'Villa 1'>",
+  "typeOfOperation": "<string: operation category>",
+  "typeOfPayment": "<string: payment method>",
+  "detail": "<string: transaction description>",
+  "ref": "<string: invoice/reference number, optional>",
+  "debit": <number: expense amount, 0 if not applicable>,
+  "credit": <number: income amount, 0 if not applicable>
 }
 
-Important:
-- For date, use MM/DD/YYYY format
-- For amount, extract only the numeric value (no currency symbols)
-- For category, try to infer from the vendor or items, or use "Uncategorized"
-- Return ONLY valid JSON, no additional text`;
+Rules:
+1. Date Parsing:
+   - Split date into day, month (3-letter abbreviation), year
+   - If no date found, use today: day="${currentDate.getDate()}", month="${currentDate.toLocaleString('en', { month: 'short' })}", year="${currentDate.getFullYear()}"
+
+2. Property:
+   - Look for property names like "Sia Moon", "Villa 1", "Villa 2", etc.
+   - Default to "Sia Moon" if not specified
+
+3. Type of Operation (typeOfOperation):
+   - For expenses: "EXP - <category> - <subcategory>"
+   - Examples: "EXP - Construction - Materials", "EXP - Construction - Wall", "EXP - Salaries - Staff", "EXP - Utilities - Electric"
+   - For income: "INC - <category> - <subcategory>"
+   - Examples: "INC - Rental - Monthly", "INC - Sales - Products"
+   - Use "Uncategorized" if unclear
+
+4. Type of Payment (typeOfPayment):
+   - Options: "Cash", "Bank transfer", "Card", "Check", "Mobile payment"
+   - Infer from keywords like "paid cash", "bank transfer", "card payment"
+
+5. Detail:
+   - Brief description of the transaction
+   - Examples: "Materials purchase", "Staff salary payment", "Electric bill"
+
+6. Ref (optional):
+   - Invoice number, receipt number, or reference
+   - Leave empty string "" if not found
+
+7. Debit vs Credit:
+   - If text mentions "paid", "expense", "cost", "purchase", "spent" → fill debit, set credit to 0
+   - If text mentions "received", "income", "deposit", "earned" → fill credit, set debit to 0
+   - Extract only numeric value (no currency symbols)
+   - Use 0 for empty debit/credit
+
+Return a single JSON object only, no additional text.`;
 
     const response = await fetch(OPENAI_API_URL, {
       method: 'POST',
@@ -94,7 +144,7 @@ Important:
         messages: [
           {
             role: 'system',
-            content: 'You are a receipt data extraction assistant. Extract structured data from receipt text and return only valid JSON.',
+            content: 'You are an accounting data extraction assistant. Extract structured accounting data from receipt text and return only valid JSON with all required fields.',
           },
           {
             role: 'user',
@@ -102,7 +152,7 @@ Important:
           },
         ],
         temperature: 0.1,
-        max_tokens: 500,
+        max_tokens: 800, // Increased for more complex schema
       }),
     });
 
@@ -126,21 +176,28 @@ Important:
       // Try to extract JSON from markdown code blocks if present
       const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
       const jsonString = jsonMatch ? jsonMatch[1] : content;
-      
+
       extracted = JSON.parse(jsonString.trim());
 
-      // Validate required fields
-      if (!extracted.date && !extracted.vendor && !extracted.amount && !extracted.category) {
+      // Validate that we have at least some required fields
+      if (!extracted.day && !extracted.month && !extracted.year && !extracted.property && !extracted.typeOfOperation) {
         console.error('Extracted data is missing all required fields');
         return FALLBACK_DATA;
       }
 
       // Ensure all fields exist with defaults
+      const currentDate = new Date();
       extracted = {
-        date: extracted.date || '',
-        vendor: extracted.vendor || '',
-        amount: extracted.amount || '',
-        category: extracted.category || 'Uncategorized',
+        day: extracted.day || String(currentDate.getDate()),
+        month: extracted.month || currentDate.toLocaleString('en', { month: 'short' }),
+        year: extracted.year || String(currentDate.getFullYear()),
+        property: extracted.property || 'Sia Moon',
+        typeOfOperation: extracted.typeOfOperation || 'Uncategorized',
+        typeOfPayment: extracted.typeOfPayment || '',
+        detail: extracted.detail || '',
+        ref: extracted.ref || '',
+        debit: Number(extracted.debit) || 0,
+        credit: Number(extracted.credit) || 0,
       };
 
       return extracted;

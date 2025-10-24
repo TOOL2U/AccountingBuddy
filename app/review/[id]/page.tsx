@@ -12,12 +12,18 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [isSending, setIsSending] = useState(false);
 
-  // Form data state - will be populated from URL parameter
+  // Form data state - expanded schema for Accounting Buddy P&L 2025
   const [formData, setFormData] = useState({
-    date: '',
-    vendor: '',
-    amount: '',
-    category: '',
+    day: '',
+    month: '',
+    year: '',
+    property: '',
+    typeOfOperation: '',
+    typeOfPayment: '',
+    detail: '',
+    ref: '',
+    debit: '',
+    credit: '',
   });
 
   // Get extracted data from URL parameter
@@ -27,10 +33,16 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
       try {
         const extractedData = JSON.parse(decodeURIComponent(dataParam));
         setFormData({
-          date: extractedData.date || '',
-          vendor: extractedData.vendor || '',
-          amount: extractedData.amount || '',
-          category: extractedData.category || 'Uncategorized',
+          day: extractedData.day || '',
+          month: extractedData.month || '',
+          year: extractedData.year || '',
+          property: extractedData.property || 'Sia Moon',
+          typeOfOperation: extractedData.typeOfOperation || 'Uncategorized',
+          typeOfPayment: extractedData.typeOfPayment || '',
+          detail: extractedData.detail || '',
+          ref: extractedData.ref || '',
+          debit: String(extractedData.debit || ''),
+          credit: String(extractedData.credit || ''),
         });
       } catch (error) {
         console.error('Failed to parse extracted data:', error);
@@ -39,7 +51,7 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
     }
   }, [searchParams]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -70,10 +82,11 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
         throw new Error(data.error || 'Failed to send to Google Sheets');
       }
 
-      // Cache the vendor-category mapping for future use
-      if (formData.vendor && formData.vendor.trim() && formData.category && formData.category !== 'Uncategorized') {
-        cacheVendorCategory(formData.vendor, formData.category);
-        console.log(`Cached category "${formData.category}" for vendor "${formData.vendor}"`);
+      // Cache the property-typeOfOperation mapping for future use
+      // Note: We're caching based on detail (vendor-like) and typeOfOperation (category-like)
+      if (formData.detail && formData.detail.trim() && formData.typeOfOperation && formData.typeOfOperation !== 'Uncategorized') {
+        cacheVendorCategory(formData.detail, formData.typeOfOperation);
+        console.log(`Cached operation type "${formData.typeOfOperation}" for detail "${formData.detail}"`);
       }
 
       // Show success toast
@@ -118,84 +131,212 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Date Field */}
+          {/* Date Fields - Day, Month, Year */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label
+                htmlFor="day"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Day
+              </label>
+              <input
+                type="text"
+                id="day"
+                name="day"
+                value={formData.day}
+                onChange={handleChange}
+                placeholder="27"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                required
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="month"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Month
+              </label>
+              <input
+                type="text"
+                id="month"
+                name="month"
+                value={formData.month}
+                onChange={handleChange}
+                placeholder="Oct"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                required
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="year"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Year
+              </label>
+              <input
+                type="text"
+                id="year"
+                name="year"
+                value={formData.year}
+                onChange={handleChange}
+                placeholder="2025"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Property Field */}
           <div>
             <label
-              htmlFor="date"
+              htmlFor="property"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Date
+              Property
+            </label>
+            <select
+              id="property"
+              name="property"
+              value={formData.property}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              required
+            >
+              <option value="">Select property</option>
+              <option value="Sia Moon">Sia Moon</option>
+              <option value="Villa 1">Villa 1</option>
+              <option value="Villa 2">Villa 2</option>
+              <option value="Villa 3">Villa 3</option>
+            </select>
+          </div>
+
+          {/* Type of Operation Field */}
+          <div>
+            <label
+              htmlFor="typeOfOperation"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Type of Operation
             </label>
             <input
               type="text"
-              id="date"
-              name="date"
-              value={formData.date}
+              id="typeOfOperation"
+              name="typeOfOperation"
+              value={formData.typeOfOperation}
               onChange={handleChange}
-              placeholder="MM/DD/YYYY"
+              placeholder="e.g., EXP - Construction - Materials"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               required
             />
           </div>
 
-          {/* Vendor Field */}
+          {/* Type of Payment Field */}
           <div>
             <label
-              htmlFor="vendor"
+              htmlFor="typeOfPayment"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Vendor
+              Type of Payment
+            </label>
+            <select
+              id="typeOfPayment"
+              name="typeOfPayment"
+              value={formData.typeOfPayment}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              required
+            >
+              <option value="">Select payment type</option>
+              <option value="Cash">Cash</option>
+              <option value="Bank transfer">Bank transfer</option>
+              <option value="Card">Card</option>
+              <option value="Check">Check</option>
+              <option value="Mobile payment">Mobile payment</option>
+            </select>
+          </div>
+
+          {/* Detail Field */}
+          <div>
+            <label
+              htmlFor="detail"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Detail
             </label>
             <input
               type="text"
-              id="vendor"
-              name="vendor"
-              value={formData.vendor}
+              id="detail"
+              name="detail"
+              value={formData.detail}
               onChange={handleChange}
-              placeholder="Vendor name"
+              placeholder="e.g., Materials purchase"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               required
             />
           </div>
 
-          {/* Amount Field */}
+          {/* Ref Field (Optional) */}
           <div>
             <label
-              htmlFor="amount"
+              htmlFor="ref"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Amount
+              Reference / Invoice # <span className="text-gray-400">(optional)</span>
             </label>
             <input
               type="text"
-              id="amount"
-              name="amount"
-              value={formData.amount}
+              id="ref"
+              name="ref"
+              value={formData.ref}
               onChange={handleChange}
-              placeholder="0.00"
+              placeholder="Invoice or reference number"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              required
             />
           </div>
 
-          {/* Category Field */}
-          <div>
-            <label
-              htmlFor="category"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Category
-            </label>
-            <input
-              type="text"
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              placeholder="e.g., EXP - Construction - Structure"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              required
-            />
+          {/* Debit and Credit Fields */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="debit"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Debit (Expense)
+              </label>
+              <input
+                type="number"
+                id="debit"
+                name="debit"
+                value={formData.debit}
+                onChange={handleChange}
+                placeholder="0"
+                min="0"
+                step="0.01"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="credit"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Credit (Income)
+              </label>
+              <input
+                type="number"
+                id="credit"
+                name="credit"
+                value={formData.credit}
+                onChange={handleChange}
+                placeholder="0"
+                min="0"
+                step="0.01"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              />
+            </div>
           </div>
 
           {/* Action Buttons */}

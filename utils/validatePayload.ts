@@ -1,20 +1,33 @@
 /**
  * Validates and sanitizes receipt data payload for Google Sheets
- * Trims whitespace and converts amount to number
+ * Expanded schema to match Accounting Buddy P&L 2025 spreadsheet
+ * Trims whitespace and converts numeric fields to numbers
  */
 
 export interface ReceiptPayload {
-  date: string;
-  vendor: string;
-  amount: string | number;
-  category: string;
+  day: string;
+  month: string;
+  year: string;
+  property: string;
+  typeOfOperation: string;
+  typeOfPayment: string;
+  detail: string;
+  ref: string;
+  debit: string | number;
+  credit: string | number;
 }
 
 export interface ValidatedPayload {
-  date: string;
-  vendor: string;
-  amount: number;
-  category: string;
+  day: string;
+  month: string;
+  year: string;
+  property: string;
+  typeOfOperation: string;
+  typeOfPayment: string;
+  detail: string;
+  ref: string;
+  debit: number;
+  credit: number;
 }
 
 export interface ValidationResult {
@@ -29,56 +42,105 @@ export interface ValidationResult {
  * @returns Validation result with sanitized data or error message
  */
 export function validatePayload(payload: ReceiptPayload): ValidationResult {
-  // Check for required fields
-  if (!payload.date || !payload.vendor || !payload.amount || !payload.category) {
+  // Check for required fields (day, month, year, property, typeOfOperation, typeOfPayment, detail)
+  // ref is optional, debit and credit can be 0
+  if (!payload.day || !payload.month || !payload.year || !payload.property ||
+      !payload.typeOfOperation || !payload.typeOfPayment || !payload.detail) {
     return {
       isValid: false,
-      error: 'Missing required fields: date, vendor, amount, and category are all required',
+      error: 'Missing required fields: day, month, year, property, typeOfOperation, typeOfPayment, and detail are all required',
     };
   }
 
   // Trim whitespace from string fields
-  const date = String(payload.date).trim();
-  const vendor = String(payload.vendor).trim();
-  const category = String(payload.category).trim();
+  const day = String(payload.day).trim();
+  const month = String(payload.month).trim();
+  const year = String(payload.year).trim();
+  const property = String(payload.property).trim();
+  const typeOfOperation = String(payload.typeOfOperation).trim();
+  const typeOfPayment = String(payload.typeOfPayment).trim();
+  const detail = String(payload.detail).trim();
+  const ref = String(payload.ref || '').trim(); // Optional field
 
-  // Validate date is not empty after trimming
-  if (!date) {
+  // Validate required fields are not empty after trimming
+  if (!day) {
     return {
       isValid: false,
-      error: 'Date cannot be empty',
+      error: 'Day cannot be empty',
     };
   }
 
-  // Validate vendor is not empty after trimming
-  if (!vendor) {
+  if (!month) {
     return {
       isValid: false,
-      error: 'Vendor cannot be empty',
+      error: 'Month cannot be empty',
     };
   }
 
-  // Convert amount to number and validate
-  const amount = Number(payload.amount);
-  if (isNaN(amount)) {
+  if (!year) {
     return {
       isValid: false,
-      error: 'Amount must be a valid number',
+      error: 'Year cannot be empty',
     };
   }
 
-  if (amount < 0) {
+  if (!property) {
     return {
       isValid: false,
-      error: 'Amount cannot be negative',
+      error: 'Property cannot be empty',
     };
   }
 
-  // Validate category is not empty after trimming
-  if (!category) {
+  if (!typeOfOperation) {
     return {
       isValid: false,
-      error: 'Category cannot be empty',
+      error: 'Type of Operation cannot be empty',
+    };
+  }
+
+  if (!typeOfPayment) {
+    return {
+      isValid: false,
+      error: 'Type of Payment cannot be empty',
+    };
+  }
+
+  if (!detail) {
+    return {
+      isValid: false,
+      error: 'Detail cannot be empty',
+    };
+  }
+
+  // Convert debit and credit to numbers and validate
+  const debit = Number(payload.debit || 0);
+  const credit = Number(payload.credit || 0);
+
+  if (isNaN(debit)) {
+    return {
+      isValid: false,
+      error: 'Debit must be a valid number',
+    };
+  }
+
+  if (isNaN(credit)) {
+    return {
+      isValid: false,
+      error: 'Credit must be a valid number',
+    };
+  }
+
+  if (debit < 0) {
+    return {
+      isValid: false,
+      error: 'Debit cannot be negative',
+    };
+  }
+
+  if (credit < 0) {
+    return {
+      isValid: false,
+      error: 'Credit cannot be negative',
     };
   }
 
@@ -86,10 +148,16 @@ export function validatePayload(payload: ReceiptPayload): ValidationResult {
   return {
     isValid: true,
     data: {
-      date,
-      vendor,
-      amount,
-      category,
+      day,
+      month,
+      year,
+      property,
+      typeOfOperation,
+      typeOfPayment,
+      detail,
+      ref,
+      debit,
+      credit,
     },
   };
 }
