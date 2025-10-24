@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { cacheVendorCategory } from '@/utils/vendorCache';
 
 export default function ReviewPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -69,6 +70,12 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
         throw new Error(data.error || 'Failed to send to Google Sheets');
       }
 
+      // Cache the vendor-category mapping for future use
+      if (formData.vendor && formData.vendor.trim() && formData.category && formData.category !== 'Uncategorized') {
+        cacheVendorCategory(formData.vendor, formData.category);
+        console.log(`Cached category "${formData.category}" for vendor "${formData.vendor}"`);
+      }
+
       // Show success toast
       setToastMessage('✅ Added to Google Sheet successfully!');
       setToastType('success');
@@ -99,7 +106,7 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12">
+    <div className="max-w-2xl mx-auto px-4 py-12 page-transition">
       <div className="bg-white rounded-lg shadow-sm p-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -196,14 +203,14 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
             <button
               type="button"
               onClick={() => router.push('/upload')}
-              className="flex-1 px-6 py-3 border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              className="flex-1 px-6 py-3 border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSending}
-              className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md shadow-sm hover:shadow-md transition-all disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+              className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-md shadow-sm hover:shadow-md transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:shadow-sm flex items-center justify-center"
             >
               {isSending ? (
                 <>
@@ -223,9 +230,9 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
 
       {/* Toast Notification (success or error) */}
       {showToast && (
-        <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-md shadow-lg animate-slide-up ${
+        <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-xl animate-slide-in-right ${
           toastType === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } text-white`}>
+        } text-white backdrop-blur-sm`}>
           <div className="flex items-center space-x-2">
             <span className="font-medium">{toastMessage}</span>
           </div>

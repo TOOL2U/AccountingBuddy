@@ -47,7 +47,7 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
+    <div className="max-w-6xl mx-auto px-4 py-12 page-transition">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Inbox</h1>
         <p className="text-gray-600">
@@ -111,7 +111,7 @@ export default function InboxPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
                     onClick={() => handleDelete(receipt.id)}
-                    className="text-red-600 hover:text-red-900 transition-colors"
+                    className="text-red-600 hover:text-red-900 active:text-red-950 transition-colors duration-200"
                   >
                     Delete
                   </button>
@@ -154,7 +154,7 @@ export default function InboxPage() {
             </div>
             <button
               onClick={() => handleDelete(receipt.id)}
-              className="w-full mt-2 px-4 py-2 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+              className="w-full mt-2 px-4 py-2 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50 active:bg-red-100 transition-colors duration-200"
             >
               Delete
             </button>
@@ -174,7 +174,7 @@ export default function InboxPage() {
           </p>
           <Link
             href="/upload"
-            className="inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md px-6 py-3 transition-colors"
+            className="inline-block bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-md px-6 py-3 shadow-sm hover:shadow-md transition-all duration-200"
           >
             Upload Receipt
           </Link>
@@ -186,7 +186,7 @@ export default function InboxPage() {
         <div className="mt-8 text-center">
           <Link
             href="/upload"
-            className="text-blue-500 hover:text-blue-600 font-medium transition-colors"
+            className="text-blue-500 hover:text-blue-600 active:text-blue-700 font-medium transition-colors duration-200"
           >
             ← Back to Upload
           </Link>

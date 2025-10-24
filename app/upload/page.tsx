@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getCachedCategory, cacheVendorCategory } from '@/utils/vendorCache';
+import { compressImage, shouldCompress, formatFileSize } from '@/utils/imageCompression';
 
 export default function UploadPage() {
   const router = useRouter();
@@ -74,9 +76,17 @@ export default function UploadPage() {
     setError('');
 
     try {
+      // Step 0: Compress image if needed (reduces API costs)
+      let fileToUpload = file;
+      if (shouldCompress(file)) {
+        console.log(`Compressing image before OCR: ${formatFileSize(file.size)}`);
+        fileToUpload = await compressImage(file);
+        console.log(`Compressed to: ${formatFileSize(fileToUpload.size)}`);
+      }
+
       // Step 1: Call OCR API
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', fileToUpload);
 
       const ocrResponse = await fetch('/api/ocr', {
         method: 'POST',
@@ -112,8 +122,23 @@ export default function UploadPage() {
         console.warn('AI extraction failed, using fallback data:', extractData.error);
       }
 
-      // Navigate to review page with extracted data
+      // Get extracted data
       const dataToPass = extractData.data || extractData;
+
+      // Check cache for vendor-category mapping
+      if (dataToPass.vendor && dataToPass.vendor.trim()) {
+        const cachedCategory = getCachedCategory(dataToPass.vendor);
+        if (cachedCategory) {
+          console.log(`Using cached category "${cachedCategory}" for vendor "${dataToPass.vendor}"`);
+          dataToPass.category = cachedCategory;
+        } else if (dataToPass.category && dataToPass.category !== 'Uncategorized') {
+          // Cache the AI-extracted category for future use
+          cacheVendorCategory(dataToPass.vendor, dataToPass.category);
+          console.log(`Cached category "${dataToPass.category}" for vendor "${dataToPass.vendor}"`);
+        }
+      }
+
+      // Navigate to review page with extracted data
       const encodedData = encodeURIComponent(JSON.stringify(dataToPass));
       router.push(`/review/${ocrData.id}?data=${encodedData}`);
     } catch (err) {
@@ -124,7 +149,7 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="max-w-4xl mx-auto px-4 py-12 page-transition">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Upload Receipt
@@ -196,7 +221,7 @@ export default function UploadPage() {
                 setPreview(null);
                 setError('');
               }}
-              className="text-sm text-gray-500 hover:text-gray-700 underline"
+              className="text-sm text-gray-500 hover:text-gray-700 underline transition-colors duration-200"
             >
               Remove file
             </button>
@@ -217,7 +242,7 @@ export default function UploadPage() {
           <button
             onClick={handleProcess}
             disabled={isProcessing}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md px-8 py-3 shadow-sm hover:shadow-md transition-all disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center mx-auto"
+            className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-md px-8 py-3 shadow-sm hover:shadow-md transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:shadow-sm flex items-center justify-center mx-auto"
           >
             {isProcessing ? (
               <>
