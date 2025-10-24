@@ -65,16 +65,19 @@ export async function POST(request: NextRequest) {
       typeOfPayment: normalizedData.typeOfPayment,
     });
 
-    // Send to Google Sheets webhook
-    const webhookUrl = `${SHEETS_WEBHOOK_URL}?secret=${SHEETS_WEBHOOK_SECRET}`;
-    console.log('[SHEETS] Sending to webhook...');
+    // Send to Google Sheets webhook with secret in POST body
+    // (Apps Script has better support for body params than headers)
+    console.log('[SHEETS] Sending to webhook with secret in POST body...');
 
-    const response = await fetch(webhookUrl, {
+    const response = await fetch(SHEETS_WEBHOOK_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(normalizedData),
+      body: JSON.stringify({
+        ...normalizedData,
+        secret: SHEETS_WEBHOOK_SECRET, // Send secret in body for better Apps Script compatibility
+      }),
     });
 
     // Check if webhook call was successful

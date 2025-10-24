@@ -1,0 +1,12 @@
+{
+  "day": "24",
+  "month": "10", 
+  "year": "2025",
+  "property": "Equipment",
+  "typeOfOperation": "EXP - Testing",
+  "typeOfPayment": "Cash",
+  "detail": "Testing from Next.js app",
+  "ref": "APP-001",
+  "debit": "100.00",
+  "credit": "0.00"
+}
