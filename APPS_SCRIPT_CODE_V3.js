@@ -104,19 +104,19 @@ function doPost(e) {
     // Get the active spreadsheet and sheet
     // IMPORTANT: Make sure this script is bound to your spreadsheet
     // or use SpreadsheetApp.openById('YOUR_SPREADSHEET_ID')
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Accounting');
-    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Accounting Buddy P&L 2025');
+
     if (!sheet) {
-      Logger.log('ERROR: Sheet "Accounting" not found');
+      Logger.log('ERROR: Sheet "Accounting Buddy P&L 2025" not found');
       return ContentService
         .createTextOutput(JSON.stringify({
           ok: false,
-          error: 'Sheet "Accounting" not found in spreadsheet'
+          error: 'Sheet "Accounting Buddy P&L 2025" not found in spreadsheet'
         }))
         .setMimeType(ContentService.MimeType.JSON);
     }
-    
-    Logger.log('✓ Sheet "Accounting" found');
+
+    Logger.log('✓ Sheet "Accounting Buddy P&L 2025" found');
     
     // Format the date
     const dateStr = `${payload.day}/${payload.month}/${payload.year}`;
