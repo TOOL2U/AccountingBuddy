@@ -7,6 +7,9 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [isSending, setIsSending] = useState(false);
 
   // Form data state - will be populated from URL parameter
   const [formData, setFormData] = useState({
@@ -42,25 +45,57 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Mock alert for Stage 0
-    alert(
-      `Sending to Google Sheet:\n\n` +
-      `Date: ${formData.date}\n` +
-      `Vendor: ${formData.vendor}\n` +
-      `Amount: ${formData.amount}\n` +
-      `Category: ${formData.category}\n\n` +
-      `In Stage 3, this will call the Sheets webhook API.`
-    );
+    // Prevent double submission
+    if (isSending) return;
 
-    // Show success toast (mock)
-    setShowToast(true);
-    setTimeout(() => {
-      setShowToast(false);
-      router.push('/inbox');
-    }, 2000);
+    setIsSending(true);
+
+    try {
+      // Call Google Sheets API
+      const response = await fetch('/api/sheets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to send to Google Sheets');
+      }
+
+      // Show success toast
+      setToastMessage('✅ Added to Google Sheet successfully!');
+      setToastType('success');
+      setShowToast(true);
+
+      // Redirect to inbox after 3 seconds
+      setTimeout(() => {
+        setShowToast(false);
+        router.push('/inbox');
+      }, 3000);
+
+    } catch (error) {
+      console.error('Failed to send to Google Sheets:', error);
+
+      // Show error toast
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send to Google Sheets';
+      setToastMessage(`❌ ${errorMessage}`);
+      setToastType('error');
+      setShowToast(true);
+
+      // Hide error toast after 3 seconds
+      setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+
+      setIsSending(false);
+    }
   };
 
   return (
@@ -167,20 +202,32 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md shadow-sm hover:shadow-md transition-all"
+              disabled={isSending}
+              className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md shadow-sm hover:shadow-md transition-all disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              Send to Google Sheet
+              {isSending ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Sending...
+                </>
+              ) : (
+                'Send to Google Sheet'
+              )}
             </button>
           </div>
         </form>
       </div>
 
-      {/* Success Toast (hidden by default) */}
+      {/* Toast Notification (success or error) */}
       {showToast && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg animate-slide-up">
+        <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-md shadow-lg animate-slide-up ${
+          toastType === 'success' ? 'bg-green-500' : 'bg-red-500'
+        } text-white`}>
           <div className="flex items-center space-x-2">
-            <span className="text-xl">✅</span>
-            <span className="font-medium">Added to Google Sheet successfully!</span>
+            <span className="font-medium">{toastMessage}</span>
           </div>
         </div>
       )}
