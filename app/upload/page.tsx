@@ -74,34 +74,50 @@ export default function UploadPage() {
     setError('');
 
     try {
-      // Create form data with the file
+      // Step 1: Call OCR API
       const formData = new FormData();
       formData.append('file', file);
 
-      // Call OCR API
-      const response = await fetch('/api/ocr', {
+      const ocrResponse = await fetch('/api/ocr', {
         method: 'POST',
         body: formData,
       });
 
-      const data = await response.json();
+      const ocrData = await ocrResponse.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'OCR processing failed');
+      if (!ocrResponse.ok) {
+        throw new Error(ocrData.error || 'OCR processing failed');
       }
 
       // Check if OCR returned an error (graceful failure)
-      if (data.error) {
-        setError(`⚠️ ${data.error}`);
+      if (ocrData.error) {
+        setError(`⚠️ ${ocrData.error}`);
         setIsProcessing(false);
         return;
       }
 
-      // Navigate to review page with OCR text
-      const encodedText = encodeURIComponent(data.text || '');
-      router.push(`/review/${data.id}?text=${encodedText}`);
+      // Step 2: Call Extract API with OCR text
+      const extractResponse = await fetch('/api/extract', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: ocrData.text }),
+      });
+
+      const extractData = await extractResponse.json();
+
+      // Even if extraction fails, we still have fallback data
+      if (extractData.error) {
+        console.warn('AI extraction failed, using fallback data:', extractData.error);
+      }
+
+      // Navigate to review page with extracted data
+      const dataToPass = extractData.data || extractData;
+      const encodedData = encodeURIComponent(JSON.stringify(dataToPass));
+      router.push(`/review/${ocrData.id}?data=${encodedData}`);
     } catch (err) {
-      console.error('OCR error:', err);
+      console.error('Processing error:', err);
       setError('❌ Failed to process receipt. Please try again.');
       setIsProcessing(false);
     }
