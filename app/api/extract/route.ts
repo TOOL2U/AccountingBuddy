@@ -56,8 +56,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { text, comment } = body;
 
+    console.log('[EXTRACT] Starting AI extraction...');
+    console.log(`[EXTRACT] Input text length: ${text?.length || 0} characters`);
+    if (comment) {
+      console.log(`[EXTRACT] User comment provided: "${comment}"`);
+    }
+
     // Validate input
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      console.error('[✖] EXTRACT failed: No text provided');
       return NextResponse.json(
         {
           error: 'Invalid input: text is required and must be non-empty',
@@ -69,6 +76,12 @@ export async function POST(request: NextRequest) {
 
     // Call OpenAI API with optional comment
     const extractedData = await callOpenAI(text, comment);
+
+    console.log('[✔] AI extraction success → fields mapped:', Object.keys(extractedData).filter(k => k !== 'confidence').join(', '));
+    console.log(`[EXTRACT] Extracted: ${extractedData.typeOfOperation} | ${extractedData.detail} | ${extractedData.debit > 0 ? 'Debit: ' + extractedData.debit : 'Credit: ' + extractedData.credit}`);
+    if (extractedData.confidence) {
+      console.log(`[EXTRACT] Confidence scores: Property=${extractedData.confidence.property.toFixed(2)}, Operation=${extractedData.confidence.typeOfOperation.toFixed(2)}, Payment=${extractedData.confidence.typeOfPayment.toFixed(2)}`);
+    }
 
     return NextResponse.json(extractedData);
   } catch (error) {
