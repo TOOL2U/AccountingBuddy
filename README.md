@@ -6,7 +6,14 @@
 
 ## Purpose
 A simple web app that converts receipts (image/PDF) into structured data and appends them to a Google Sheet.
-**Flow:** Upload → OCR → AI Extract → Review/Edit → Log to Sheet.
+**Flow:** Upload (+ optional comment) → OCR → AI Extract (with fuzzy matching) → Review/Edit (with confidence badges) → Validate → Log to Sheet.
+
+## ✨ Key Features
+- **Comment-Guided Extraction**: Add optional comments when uploading receipts to help AI select correct categories
+- **Intelligent Dropdown Matching**: Fuzzy matching with keyword recognition and Levenshtein distance
+- **Confidence Scoring**: Visual indicators for uncertain matches (<0.8 confidence threshold)
+- **Canonical Options**: All dropdown values validated against `/config/options.json`
+- **10-Field Accounting Schema**: Matches "Accounting Buddy P&L 2025.xlsx" structure
 
 ## 🚀 Production Deployment
 

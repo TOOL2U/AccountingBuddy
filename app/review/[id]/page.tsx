@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { cacheVendorCategory } from '@/utils/vendorCache';
+import { getOptions } from '@/utils/matchOption';
 
 export default function ReviewPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -11,6 +12,9 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [isSending, setIsSending] = useState(false);
+
+  // Get dropdown options
+  const options = getOptions();
 
   // Form data state - expanded schema for Accounting Buddy P&L 2025
   const [formData, setFormData] = useState({
@@ -24,6 +28,13 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
     ref: '',
     debit: '',
     credit: '',
+  });
+
+  // Confidence scores for dropdown fields
+  const [confidence, setConfidence] = useState({
+    property: 1.0,
+    typeOfOperation: 1.0,
+    typeOfPayment: 1.0,
   });
 
   // Get extracted data from URL parameter
@@ -44,6 +55,15 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
           debit: String(extractedData.debit || ''),
           credit: String(extractedData.credit || ''),
         });
+
+        // Extract confidence scores if available
+        if (extractedData.confidence) {
+          setConfidence({
+            property: extractedData.confidence.property || 1.0,
+            typeOfOperation: extractedData.confidence.typeOfOperation || 1.0,
+            typeOfPayment: extractedData.confidence.typeOfPayment || 1.0,
+          });
+        }
       } catch (error) {
         console.error('Failed to parse extracted data:', error);
         // Keep empty form if parsing fails
@@ -193,9 +213,14 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
           <div>
             <label
               htmlFor="property"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
             >
               Property
+              {confidence.property < 0.8 && (
+                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                  ⚠️ Needs review
+                </span>
+              )}
             </label>
             <select
               id="property"
@@ -206,11 +231,11 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
               required
             >
               <option value="">Select property</option>
-              <option value="Sia Moon">Sia Moon</option>
-              <option value="Alesia House">Alesia House</option>
-              <option value="Villa 1">Villa 1</option>
-              <option value="Villa 2">Villa 2</option>
-              <option value="Villa 3">Villa 3</option>
+              {options.properties.map((prop) => (
+                <option key={prop} value={prop}>
+                  {prop}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -218,29 +243,44 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
           <div>
             <label
               htmlFor="typeOfOperation"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
             >
               Type of Operation
+              {confidence.typeOfOperation < 0.8 && (
+                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                  ⚠️ Needs review
+                </span>
+              )}
             </label>
-            <input
-              type="text"
+            <select
               id="typeOfOperation"
               name="typeOfOperation"
               value={formData.typeOfOperation}
               onChange={handleChange}
-              placeholder="e.g., EXP - Construction - Materials"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               required
-            />
+            >
+              <option value="">Select operation type</option>
+              {options.typeOfOperation.map((op) => (
+                <option key={op} value={op}>
+                  {op}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Type of Payment Field */}
           <div>
             <label
               htmlFor="typeOfPayment"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
             >
               Type of Payment
+              {confidence.typeOfPayment < 0.8 && (
+                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                  ⚠️ Needs review
+                </span>
+              )}
             </label>
             <select
               id="typeOfPayment"
@@ -251,11 +291,11 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
               required
             >
               <option value="">Select payment type</option>
-              <option value="Cash">Cash</option>
-              <option value="Bank transfer">Bank transfer</option>
-              <option value="Card">Card</option>
-              <option value="Check">Check</option>
-              <option value="Mobile payment">Mobile payment</option>
+              {options.typeOfPayment.map((payment) => (
+                <option key={payment} value={payment}>
+                  {payment}
+                </option>
+              ))}
             </select>
           </div>
 

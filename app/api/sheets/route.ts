@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validatePayload, ReceiptPayload } from '@/utils/validatePayload';
+import { matchProperty, matchTypeOfOperation, matchTypeOfPayment } from '@/utils/matchOption';
 
 // Google Sheets webhook configuration
 const SHEETS_WEBHOOK_URL = process.env.SHEETS_WEBHOOK_URL;
@@ -24,26 +25,34 @@ export async function POST(request: NextRequest) {
 
     // Validate and sanitize payload
     const validation = validatePayload(body);
-    
-    if (!validation.isValid) {
+
+    if (!validation.isValid || !validation.data) {
       return NextResponse.json(
-        { 
+        {
           success: false,
-          error: validation.error 
+          error: validation.error
         },
         { status: 400 }
       );
     }
 
+    // Normalize dropdown fields to ensure they match canonical options
+    const normalizedData = {
+      ...validation.data,
+      property: matchProperty(validation.data.property).value,
+      typeOfOperation: matchTypeOfOperation(validation.data.typeOfOperation).value,
+      typeOfPayment: matchTypeOfPayment(validation.data.typeOfPayment).value,
+    };
+
     // Send to Google Sheets webhook
     const webhookUrl = `${SHEETS_WEBHOOK_URL}?secret=${SHEETS_WEBHOOK_SECRET}`;
-    
+
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(validation.data),
+      body: JSON.stringify(normalizedData),
     });
 
     // Check if webhook call was successful

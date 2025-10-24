@@ -2,6 +2,13 @@
 
 This guide will help you set up the Google Sheets webhook integration for Accounting Buddy.
 
+## Features
+
+- **Comment-Guided AI Extraction**: Add optional comments when uploading receipts to help the AI select the correct categories
+- **Fuzzy Matching**: AI-selected values are automatically matched to canonical dropdown options using keyword matching and Levenshtein distance
+- **Confidence Scoring**: Low-confidence matches (<0.8) are flagged with "⚠️ Needs review" badges in the review UI
+- **Dropdown Validation**: All dropdown fields are validated before sending to Google Sheets to ensure data consistency
+
 ## Prerequisites
 
 - A Google account

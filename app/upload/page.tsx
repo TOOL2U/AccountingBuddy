@@ -12,6 +12,7 @@ export default function UploadPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [comment, setComment] = useState<string>('');
 
   const acceptedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
 
@@ -106,13 +107,16 @@ export default function UploadPage() {
         return;
       }
 
-      // Step 2: Call Extract API with OCR text
+      // Step 2: Call Extract API with OCR text and optional comment
       const extractResponse = await fetch('/api/extract', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: ocrData.text }),
+        body: JSON.stringify({
+          text: ocrData.text,
+          comment: comment.trim() || undefined
+        }),
       });
 
       const extractData = await extractResponse.json();
@@ -229,6 +233,33 @@ export default function UploadPage() {
           </div>
         )}
       </div>
+
+      {/* Comment Field (Optional) */}
+      {file && (
+        <div className="mt-6">
+          <label
+            htmlFor="comment"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Comment (optional)
+            <span className="text-gray-500 font-normal ml-2">
+              — Help the AI categorize this receipt
+            </span>
+          </label>
+          <textarea
+            id="comment"
+            name="comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="e.g., 'Materials for wall construction' or 'Staff salary payment'"
+            rows={2}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            💡 Tip: Add context like "wall construction", "salaries", or "Villa 1" to improve category accuracy
+          </p>
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (

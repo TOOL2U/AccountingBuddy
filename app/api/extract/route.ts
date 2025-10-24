@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { normalizeDropdownFields, getOptions } from '@/utils/matchOption';
 
 // OpenAI API configuration
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -30,6 +31,11 @@ interface ExtractedData {
   ref: string;
   debit: number;
   credit: number;
+  confidence?: {
+    property: number;
+    typeOfOperation: number;
+    typeOfPayment: number;
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -48,21 +54,21 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { text } = body;
+    const { text, comment } = body;
 
     // Validate input
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       return NextResponse.json(
-        { 
+        {
           error: 'Invalid input: text is required and must be non-empty',
-          data: FALLBACK_DATA 
+          data: FALLBACK_DATA
         },
         { status: 400 }
       );
     }
 
-    // Call OpenAI API
-    const extractedData = await callOpenAI(text);
+    // Call OpenAI API with optional comment
+    const extractedData = await callOpenAI(text, comment);
 
     return NextResponse.json(extractedData);
   } catch (error) {
@@ -77,11 +83,30 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function callOpenAI(text: string): Promise<ExtractedData> {
+async function callOpenAI(text: string, comment?: string): Promise<ExtractedData> {
   try {
     const currentDate = new Date();
+    const options = getOptions();
+
+    // Build context with comment if provided
+    const contextText = comment
+      ? `Receipt text: "${text}"\n\nUser comment (use this to guide categorization): "${comment}"`
+      : `Receipt text: "${text}"`;
+
     const prompt = `Extract structured accounting data in JSON for this text:
-"${text}"
+${contextText}
+
+IMPORTANT: You must select values from these EXACT dropdown options:
+
+Properties (choose one):
+${options.properties.map(p => `- "${p}"`).join('\n')}
+
+Type of Operation (choose one):
+${options.typeOfOperation.slice(0, 15).map(op => `- "${op}"`).join('\n')}
+... and more (match exactly or use "Uncategorized")
+
+Type of Payment (choose one):
+${options.typeOfPayment.map(tp => `- "${tp}"`).join('\n')}
 
 Output fields:
 {
@@ -229,6 +254,26 @@ Return a single JSON object only, no additional text.`;
         ref: extracted.ref || '',
         debit: Number(extracted.debit) || 0,
         credit: Number(extracted.credit) || 0,
+      };
+
+      // Normalize dropdown fields to match canonical options
+      const normalized = normalizeDropdownFields(
+        {
+          property: extracted.property,
+          typeOfOperation: extracted.typeOfOperation,
+          typeOfPayment: extracted.typeOfPayment,
+        },
+        comment
+      );
+
+      // Apply normalized values and add confidence scores
+      extracted.property = normalized.property.value;
+      extracted.typeOfOperation = normalized.typeOfOperation.value;
+      extracted.typeOfPayment = normalized.typeOfPayment.value;
+      extracted.confidence = {
+        property: normalized.property.confidence,
+        typeOfOperation: normalized.typeOfOperation.confidence,
+        typeOfPayment: normalized.typeOfPayment.confidence,
       };
 
       return extracted;
