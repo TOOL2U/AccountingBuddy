@@ -86,9 +86,9 @@ async function callOpenAI(text: string): Promise<ExtractedData> {
 Output fields:
 {
   "day": "<string: day number, e.g., '27'>",
-  "month": "<string: 3-letter month, e.g., 'Feb', 'Oct'>",
+  "month": "<string: 3-letter month, e.g., 'Feb', 'Oct', 'Jun', 'Aug', 'Sep'>",
   "year": "<string: 4-digit year, e.g., '2025'>",
-  "property": "<string: property name, e.g., 'Sia Moon', 'Villa 1'>",
+  "property": "<string: property name, e.g., 'Sia Moon', 'Alesia House', 'Villa 1'>",
   "typeOfOperation": "<string: operation category>",
   "typeOfPayment": "<string: payment method>",
   "detail": "<string: transaction description>",
@@ -100,36 +100,67 @@ Output fields:
 Rules:
 1. Date Parsing:
    - Split date into day, month (3-letter abbreviation), year
+   - Month must be 3 letters: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
    - If no date found, use today: day="${currentDate.getDate()}", month="${currentDate.toLocaleString('en', { month: 'short' })}", year="${currentDate.getFullYear()}"
 
 2. Property:
-   - Look for property names like "Sia Moon", "Villa 1", "Villa 2", etc.
+   - Look for property names like "Sia Moon", "Alesia House", "Villa 1", "Villa 2", etc.
+   - Common properties: "Sia Moon", "Alesia House"
    - Default to "Sia Moon" if not specified
 
 3. Type of Operation (typeOfOperation):
    - For expenses: "EXP - <category> - <subcategory>"
-   - Examples: "EXP - Construction - Materials", "EXP - Construction - Wall", "EXP - Salaries - Staff", "EXP - Utilities - Electric"
+   - Common expense categories:
+     * "EXP - Construction - Wall"
+     * "EXP - Construction - Materials"
+     * "EXP - Construction - Electric"
+     * "EXP - Construction - Overheads/General/Unclassified"
+     * "EXP - Repairs & Maintenance - Electrical & Mechanical"
+     * "EXP - Appliances & Electronics"
+     * "EXP - Windows, Doors, Locks & Hardware"
+     * "EXP - Decor"
+     * "EXP - Salaries - Staff"
+     * "EXP - Utilities - Electric"
    - For income: "INC - <category> - <subcategory>"
    - Examples: "INC - Rental - Monthly", "INC - Sales - Products"
-   - Use "Uncategorized" if unclear
+   - Match the exact format from examples above
+   - Use "EXP - Uncategorized" if unclear
 
 4. Type of Payment (typeOfPayment):
    - Options: "Cash", "Bank transfer", "Card", "Check", "Mobile payment"
-   - Infer from keywords like "paid cash", "bank transfer", "card payment"
+   - Note: "Bank transfer" has a space (not "Bank_transfer" or "BankTransfer")
+   - Infer from keywords: "cash" → "Cash", "bank transfer" or "transfer" → "Bank transfer", "card" → "Card"
+   - Default to "Cash" if payment method unclear
 
 5. Detail:
    - Brief description of the transaction
-   - Examples: "Materials purchase", "Staff salary payment", "Electric bill"
+   - Examples from real data:
+     * "Materials" (for construction materials)
+     * "Labour" (for labor/worker payments)
+     * "Labour - painting" (for specific labor type)
+     * "Electric cable for gardening 100m" (specific item description)
+     * "Air purifier" (appliance purchase)
+     * "Termite treatment 2nd half for 2025 year" (service description)
+   - Keep it concise but descriptive
+   - Capitalize first letter
 
 6. Ref (optional):
    - Invoice number, receipt number, or reference
    - Leave empty string "" if not found
+   - Examples: "INV-12345", "Receipt #789"
 
 7. Debit vs Credit:
-   - If text mentions "paid", "expense", "cost", "purchase", "spent" → fill debit, set credit to 0
-   - If text mentions "received", "income", "deposit", "earned" → fill credit, set debit to 0
-   - Extract only numeric value (no currency symbols)
+   - If text mentions "paid", "expense", "cost", "purchase", "spent", "EXP" → fill debit, set credit to 0
+   - If text mentions "received", "income", "deposit", "earned", "INC" → fill credit, set debit to 0
+   - Extract only numeric value (remove currency symbols like ฿, $, €, commas, spaces)
+   - Examples: "฿4,785" → 4785, "135,200 baht" → 135200, "2000 baht" → 2000
    - Use 0 for empty debit/credit
+
+8. Number Extraction:
+   - Remove all currency symbols (฿, $, €, £, ¥)
+   - Remove all commas and spaces from numbers
+   - Convert to plain integer or decimal
+   - Examples: "฿15,820" → 15820, "฿3,600" → 3600, "279" → 279
 
 Return a single JSON object only, no additional text.`;
 

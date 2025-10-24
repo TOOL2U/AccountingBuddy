@@ -105,14 +105,40 @@ components/
 - [x] Comprehensive testing (17 tests passed)
 - [x] Complete documentation (CHANGELOG, QA reports)
 
+## 📊 Data Schema
+
+**Canonical Schema:** `/docs/Accounting_Buddy_P&L_2025.csv`
+
+The application uses a **10-field accounting schema** that matches the structure of the "Accounting Buddy P&L 2025" spreadsheet:
+
+| Column | Field | Type | Example | Description |
+|--------|-------|------|---------|-------------|
+| B | Day | string | "27" | Day of the month |
+| C | Month | string | "Feb" | 3-letter month abbreviation |
+| D | Year | string | "2025" | 4-digit year |
+| E | Property | string | "Sia Moon" | Property name (Sia Moon, Alesia House, etc.) |
+| F | Type of operation | string | "EXP - Construction - Wall" | Operation category (EXP/INC - Category - Subcategory) |
+| G | Type of payment | string | "Bank transfer" | Payment method (Cash, Bank transfer, Card, etc.) |
+| H | Detail | string | "Materials" | Transaction description |
+| I | Ref | string | "" | Invoice/reference number (optional) |
+| J | Debit | number | 4785 | Expense amount (0 if not applicable) |
+| K | Credit | number | 0 | Income amount (0 if not applicable) |
+
+**Note:** Column A is left empty in the spreadsheet for row numbers/spacing.
+
+### Schema Mapping:
+- **OCR + AI Extraction** → Extracts all 10 fields from receipt text
+- **Manual Text Input** → AI parses text like "debit - 2000 baht - salaries - paid by cash" into full schema
+- **Google Sheets Webhook** → Appends data in exact column order (B through K)
+
 ## 🎯 Features
 
 ### Core Functionality:
 - ✅ Upload receipt images (JPG, PNG, PDF)
 - ✅ OCR text extraction with retry logic
-- ✅ AI-powered field extraction
+- ✅ AI-powered field extraction (10-field accounting schema)
 - ✅ Editable review form with validation
-- ✅ Google Sheets integration
+- ✅ Google Sheets integration (matches P&L 2025 structure)
 - ✅ Mobile responsive design
 
 ### Performance Optimizations:

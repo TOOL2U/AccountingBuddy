@@ -207,6 +207,7 @@ export default function ReviewPage({ params }: { params: { id: string } }) {
             >
               <option value="">Select property</option>
               <option value="Sia Moon">Sia Moon</option>
+              <option value="Alesia House">Alesia House</option>
               <option value="Villa 1">Villa 1</option>
               <option value="Villa 2">Villa 2</option>
               <option value="Villa 3">Villa 3</option>

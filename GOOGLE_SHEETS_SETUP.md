@@ -13,17 +13,23 @@ This guide will help you set up the Google Sheets webhook integration for Accoun
 2. Create a new spreadsheet or open an existing one
 3. Name it something like "Accounting Buddy P&L 2025"
 4. Create a sheet named **"Accounting"** (or use the default sheet and rename it)
-5. Add column headers in the first row:
-   - Column A: **Day** (e.g., "27")
-   - Column B: **Month** (e.g., "Feb", "Oct")
-   - Column C: **Year** (e.g., "2025")
-   - Column D: **Property** (e.g., "Sia Moon", "Villa 1")
-   - Column E: **Type of Operation** (e.g., "EXP - Construction - Materials")
-   - Column F: **Type of Payment** (e.g., "Cash", "Bank transfer")
-   - Column G: **Detail** (e.g., "Materials purchase")
-   - Column H: **Ref** (e.g., Invoice number - optional)
-   - Column I: **Debit** (Expense amount)
-   - Column J: **Credit** (Income amount)
+5. Add column headers - **IMPORTANT: Use this exact structure**:
+   - **Row 1**: Leave empty or add a title (e.g., "Alesia House P&L 2025")
+   - **Row 2**: Leave empty
+   - **Row 3**: Add these column headers starting from **Column B** (leave Column A empty):
+     - Column A: **(Leave empty)** - for row numbers/spacing
+     - Column B: **Day** (e.g., "27")
+     - Column C: **Month** (e.g., "Feb", "Oct")
+     - Column D: **Year** (e.g., "2025")
+     - Column E: **Property** (e.g., "Sia Moon", "Alesia House")
+     - Column F: **Type of operation** (e.g., "EXP - Construction - Materials")
+     - Column G: **Type of payment** (e.g., "Cash", "Bank transfer")
+     - Column H: **Detail** (e.g., "Materials", "Labour")
+     - Column I: **Ref** (e.g., Invoice number - optional)
+     - Column J: **Debit** (Expense amount - format as currency)
+     - Column K: **Credit** (Income amount - format as currency)
+
+**Note:** This structure matches the canonical schema in `/docs/Accounting_Buddy_P&L_2025.csv`. The webhook will append data starting from Column B (skipping Column A).
 
 ## Step 2: Open Apps Script Editor
 
@@ -63,18 +69,20 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.TEXT);
     }
 
-    // Append the data as a new row (10 fields in correct order)
+    // Append the data as a new row (11 fields: empty first column + 10 data fields)
+    // Column A is left empty for row numbers/spacing (matches CSV structure)
     sheet.appendRow([
-      params.day,
-      params.month,
-      params.year,
-      params.property,
-      params.typeOfOperation,
-      params.typeOfPayment,
-      params.detail,
-      params.ref,
-      params.debit,
-      params.credit
+      "",                      // Column A: Empty (for row numbers/spacing)
+      params.day,              // Column B: Day
+      params.month,            // Column C: Month
+      params.year,             // Column D: Year
+      params.property,         // Column E: Property
+      params.typeOfOperation,  // Column F: Type of operation
+      params.typeOfPayment,    // Column G: Type of payment
+      params.detail,           // Column H: Detail
+      params.ref,              // Column I: Ref
+      params.debit,            // Column J: Debit
+      params.credit            // Column K: Credit
     ]);
 
     // Return success response
