@@ -1,0 +1,75 @@
+# 03_sheets_webhook.txt — Phase 3: Google Sheets Integration
+
+## Objective
+Send reviewed data from `/review/[id]` to a Google Sheet through an Apps Script webhook.  
+Keep logic minimal, secure, and reliable.
+
+## Implementation Steps
+
+### 1. Create `/api/sheets` Endpoint
+- Accept POST JSON body:
+  ```json
+  { "date": "10/23/2025", "vendor": "HomePro Samui", "amount": "1245", "category": "EXP - Construction - Structure" }
+  ```
+- Validate fields (all required).
+- Send POST request to:
+  `${process.env.SHEETS_WEBHOOK_URL}?secret=${process.env.SHEETS_WEBHOOK_SECRET}`
+- Include JSON body as-is.
+- Return success or error JSON response.
+
+Example:
+```ts
+const response = await fetch(`${webhookUrl}?secret=${webhookSecret}`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ date, vendor, amount, category }),
+});
+```
+
+### 2. Update `/review/[id]/page.tsx`
+- Replace mock alert with real call to `/api/sheets`.
+- Add success toast on completion (`✅ Added to Google Sheet successfully!`).
+- Add red toast for error (e.g., invalid webhook or network issue).
+- Toasts auto-hide after 3 seconds.
+
+### 3. Google Apps Script Setup
+Add this code inside your Sheet's Script Editor:
+```javascript
+function doPost(e) {
+  const secret = "YOUR_MATCHING_SECRET_HERE";
+  const params = JSON.parse(e.postData.contents);
+  const incomingSecret = e.parameter.secret;
+  if (incomingSecret !== secret) {
+    return ContentService.createTextOutput("Unauthorized").setMimeType(ContentService.MimeType.TEXT);
+  }
+  const sheet = SpreadsheetApp.getActiveSheet();
+  sheet.appendRow([params.date, params.vendor, params.amount, params.category]);
+  return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+}
+```
+
+Deploy as a web app:
+- Execute as: **Me**
+- Access: **Anyone with the link**
+- Copy the URL → add to `.env.local` as `SHEETS_WEBHOOK_URL`
+
+### 4. Acceptance Criteria
+✅ "Send to Google Sheet" writes a new row  
+✅ Success and error toasts display correctly  
+✅ Webhook secret validated  
+✅ No data stored locally  
+
+### Example POST Payload
+```json
+{
+  "date": "10/23/2025",
+  "vendor": "HomePro Samui",
+  "amount": "1245",
+  "category": "EXP - Construction - Structure"
+}
+```
+
+### Example Sheet Row
+| Date       | Vendor        | Amount | Category                       |
+|------------|---------------|--------|--------------------------------|
+| 10/23/2025 | HomePro Samui | 1245   | EXP - Construction - Structure |

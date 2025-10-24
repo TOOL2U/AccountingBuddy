@@ -1,0 +1,66 @@
+# 02_extract_api.txt — Phase 2: AI Data Extraction and Structuring
+
+## Objective
+Convert raw OCR text into structured JSON fields (date, vendor, amount, category) using OpenAI GPT-4o.
+
+## Implementation Steps
+
+### 1. Add `/api/extract` Route
+- Accept POST JSON body: `{ text: "<ocr_text>" }`
+- Validate input — must contain non-empty text.
+- Use OpenAI API (model: "gpt-4o") with the following prompt:
+```
+Extract structured data from this receipt text: <text>
+Return JSON only with the following keys:
+{
+"date": "MM/DD/YYYY",
+"vendor": "<string>",
+"amount": "<number>",
+"category": "<string: e.g., EXP - Construction - Structure or Uncategorized>"
+}
+```
+- Parse the model output safely:
+```ts
+const content = data.choices[0].message.content;
+let extracted;
+try {
+  extracted = JSON.parse(content);
+} catch {
+  extracted = { date: "", vendor: "", amount: "", category: "Uncategorized" };
+}
+```
+- Return JSON `{ ...extracted }`.
+
+### 2. Update `/upload/page.tsx`
+- After receiving OCR text from `/api/ocr`, call `/api/extract` with `{ text }`.
+- On success, redirect to `/review/[id]?data=<encoded_json>`.
+
+### 3. Error Handling
+- Wrap API calls in try/catch.
+- If extraction fails, return fallback object:
+  ```json
+  { "date": "", "vendor": "", "amount": "", "category": "Uncategorized" }
+  ```
+- Display alert: "AI extraction failed — please review manually."
+
+### 4. Acceptance Criteria
+✅ OCR → Extract → Review flow completes  
+✅ Output always valid JSON (never crashes)  
+✅ If OpenAI fails, fallback JSON returned  
+✅ Proper user feedback for errors  
+
+### Example Flow
+1. Upload receipt
+2. OCR returns text
+3. `/api/extract` parses fields
+4. Redirect to `/review/[id]` with prefilled data
+
+### Example AI Output
+```json
+{
+  "date": "10/23/2025",
+  "vendor": "HomePro Samui",
+  "amount": "1245",
+  "category": "EXP - Construction - Structure"
+}
+```

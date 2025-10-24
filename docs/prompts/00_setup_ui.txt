@@ -1,0 +1,53 @@
+# 00_setup_ui.txt — Phase 1: UI Scaffold Build
+
+## Objective
+Create the complete frontend UI for Accounting Buddy using Next.js (App Router) + TypeScript + Tailwind CSS.
+
+Focus: static mock data, responsive layout, no backend or API integration yet.
+
+## Requirements
+
+### Pages
+1. `/upload`
+   - Drag-and-drop + "Choose File" upload section
+   - File preview thumbnail (mock image)
+   - "Process" button (mock alert for now)
+   - Supported formats: JPG, PNG, PDF
+   - Clean grayscale theme with blue accent
+   - Centered, minimal layout
+
+2. `/review/[id]`
+   - Four fields: Date, Vendor, Amount, Category
+   - Pre-filled with mock data
+   - Editable form, "Send to Google Sheet" button (mock alert)
+   - Success toast placeholder (hidden by default)
+
+3. `/inbox`
+   - Simple table of mock receipts with name, status, and delete option
+   - Status badges (green/yellow)
+   - Back to Upload link
+
+### Navigation
+- Persistent top nav with links to Upload and Inbox
+- Responsive (stack on small screens)
+- Add placeholder logo/title "Accounting Buddy"
+
+### Design
+- Font: Inter
+- Color: grayscale + blue accent (#3B82F6)
+- Rounded buttons, modern minimal aesthetic
+- Mobile-friendly layouts (`sm:` breakpoint)
+- Mock data only — no API calls yet
+
+### Acceptance Criteria
+✅ All pages render correctly under `/upload`, `/review/[id]`, `/inbox`  
+✅ Navigation works across pages  
+✅ Buttons and inputs are styled with Tailwind  
+✅ Layout is responsive and consistent  
+✅ No backend or API logic included yet  
+
+### After Build
+After completion, confirm by testing:
+- Run `npm run dev`
+- Visit `/upload`, `/review/1`, `/inbox`
+- Verify all buttons trigger alerts instead of real logic

@@ -1,0 +1,62 @@
+# 04_polish_and_tests.txt — Phase 4: UI Polish and QA Pass
+
+## Objective
+Refine Accounting Buddy's MVP to production-ready polish:
+- Smooth UI interactions
+- Error/success handling consistency
+- Basic visual feedback for OCR and Sheets sync
+
+## Implementation Steps
+
+### 1. UI Improvements
+- Add a simple spinner (`animate-spin`) beside "Processing…" during OCR/AI calls.
+- Ensure buttons disable while loading.
+- Adjust toast animations:
+  - Slide in from bottom-right (`transition-all duration-300 translate-y-2 opacity-0 → translate-y-0 opacity-100`)
+  - Auto-dismiss after 3 seconds.
+- Standardize button styles:
+  - `bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md px-4 py-2`
+- Add subtle shadows on cards/forms: `shadow-sm hover:shadow-md transition-all`.
+
+### 2. Error Handling Consistency
+- Replace `alert()` with inline error text where possible:
+  - Under upload drop zone: "❌ Unsupported file type."
+  - Under review form: "⚠️ Failed to sync with Google Sheet."
+- Wrap all async functions in `try/catch`.
+- Ensure catch blocks show visual feedback, not silent errors.
+
+### 3. Responsiveness Check
+- On mobile (`sm:`):
+  - Nav collapses to stacked layout.
+  - Tables in `/inbox` become vertical cards (flex-column with small text).
+  - Inputs use `w-full` and `text-base`.
+- Test resizing window to confirm visual integrity.
+
+### 4. QA Checklist (based on TESTING.md)
+- Upload JPG, PNG, and PDF receipts successfully.
+- OCR and AI steps complete with visible "Processing…" feedback.
+- Review page populates correctly, allows manual edits.
+- "Send to Google Sheet" writes data and shows green success toast.
+- `/inbox` lists receipts correctly (mock data fine for now).
+- Test unsupported file and missing webhook env to confirm visible error messages.
+
+### 5. Deployment Prep
+- Verify `.env.local` keys are valid:
+  - GOOGLE_VISION_KEY
+  - OPENAI_API_KEY
+  - SHEETS_WEBHOOK_URL
+  - SHEETS_WEBHOOK_SECRET
+- Test on Vercel (Production build).
+- Set `NEXT_PUBLIC_MOCK=false` before deployment.
+
+### 6. Acceptance Criteria
+✅ Loading indicators show clearly during async actions  
+✅ Toasters animate smoothly for both success and error states  
+✅ Errors are user-friendly and visible on-screen  
+✅ All pages responsive and styled consistently  
+✅ MVP ready for Vercel deployment  
+✅ Passes all test cases from TESTING.md  
+
+### Example Toasts
+✅ **Success:** "Added to Google Sheet successfully!" (green)  
+❌ **Error:** "Failed to sync — check webhook." (red)

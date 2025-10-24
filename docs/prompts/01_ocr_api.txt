@@ -1,0 +1,49 @@
+# 01_ocr_api.txt — Phase 2: Google Vision OCR Integration
+
+## Objective
+Enable OCR text extraction from uploaded receipt files using Google Cloud Vision API.  
+Keep logic minimal and errors handled gracefully.
+
+## Implementation Steps
+
+### 1. Add API route `/api/ocr`
+- Accept multipart form data (`file`).
+- Validate file type (must be JPG, PNG, or PDF).
+- Convert file to Base64.
+- Send to Google Vision endpoint:
+  POST https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_KEY}
+  with body:
+  {
+    "requests": [{
+      "image": { "content": "<base64>" },
+      "features": [{ "type": "TEXT_DETECTION", "maxResults": 1 }]
+    }]
+  }
+- Extract text: `data.responses[0].fullTextAnnotation.text`
+- Return JSON `{ text, id }` (with `uuidv4()` for id)
+
+### 2. Update `/upload/page.tsx`
+- On "Process" click, call `/api/ocr` instead of mock alert.
+- Add loading state (button label → "Processing…").
+- Display alert on OCR failure.
+- On success, navigate to `/review/[id]?text=encoded_text`.
+
+### 3. Basic Error Handling
+- Handle Vision API rate limits:
+  - If response status 429 or 500, retry with exponential backoff (1s, 2s, 4s, max 3 retries).
+- If all retries fail → return `{ text: "", error: "OCR failed" }`.
+
+### 4. Acceptance Criteria
+✅ Upload → OCR → returns text string  
+✅ Invalid file type blocked before upload  
+✅ Loading state shown during processing  
+✅ Retry logic handles Vision API rate limits gracefully  
+✅ No external storage used; process in-memory only  
+
+### Example Response
+```json
+{
+  "id": "a8d19f5c-1234-4e7f-9f52-8ea3b4c2f4e1",
+  "text": "HomePro Samui\n23 Oct 2025\n1245 THB\nConstruction Materials"
+}
+```
