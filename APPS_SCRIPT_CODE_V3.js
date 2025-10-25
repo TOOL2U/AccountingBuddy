@@ -117,21 +117,21 @@ function doPost(e) {
     }
 
     Logger.log('✓ Sheet "Accounting Buddy P&L 2025" found');
-    
-    // Format the date
-    const dateStr = `${payload.day}/${payload.month}/${payload.year}`;
-    
-    // Prepare row data (Column A is empty, data goes in B-K)
+
+    // Prepare row data matching CSV structure exactly
+    // Column A is empty, B-K contain the data
     const rowData = [
       '', // Column A - Empty (for row numbers or manual use)
-      dateStr, // Column B - Date
-      payload.property || '', // Column C - Property
-      payload.typeOfOperation || '', // Column D - Type of Operation
-      payload.typeOfPayment || '', // Column E - Type of Payment
-      payload.detail || '', // Column F - Detail
-      payload.ref || '', // Column G - Ref
-      payload.debit || '', // Column H - Debit
-      payload.credit || '' // Column I - Credit
+      payload.day || '', // Column B - Day
+      payload.month || '', // Column C - Month
+      payload.year || '', // Column D - Year
+      payload.property || '', // Column E - Property
+      payload.typeOfOperation || '', // Column F - Type of operation
+      payload.typeOfPayment || '', // Column G - Type of payment
+      payload.detail || '', // Column H - Detail
+      payload.ref || '', // Column I - Ref
+      payload.debit || '', // Column J - Debit
+      payload.credit || '' // Column K - Credit
     ];
     
     Logger.log('Row data prepared: ' + JSON.stringify(rowData));
