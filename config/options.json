@@ -1,10 +1,7 @@
 {
   "properties": [
     "Sia Moon",
-    "Alesia House",
-    "Villa 1",
-    "Villa 2",
-    "Villa 3"
+    "Alesia House"
   ],
   "typeOfOperation": [
     "EXP - Construction - Wall",
@@ -87,11 +84,8 @@
       "Mobile payment": ["mobile payment", "mobile", "qr code", "promptpay", "alipay", "wechat pay"]
     },
     "property": {
-      "Sia Moon": ["sia moon", "siamoon", "sia"],
-      "Alesia House": ["alesia", "alesia house"],
-      "Villa 1": ["villa 1", "villa one", "villa1"],
-      "Villa 2": ["villa 2", "villa two", "villa2"],
-      "Villa 3": ["villa 3", "villa three", "villa3"]
+      "Sia Moon": ["sia moon", "siamoon", "sia", "moon"],
+      "Alesia House": ["alesia", "alesia house", "alesia's house"]
     }
   }
 }

@@ -126,7 +126,7 @@ Output fields:
   "day": "<string: day number, e.g., '27'>",
   "month": "<string: 3-letter month, e.g., 'Feb', 'Oct', 'Jun', 'Aug', 'Sep'>",
   "year": "<string: 4-digit year, e.g., '2025'>",
-  "property": "<string: property name, e.g., 'Sia Moon', 'Alesia House', 'Villa 1'>",
+  "property": "<string: property name, e.g., 'Sia Moon', 'Alesia House'>",
   "typeOfOperation": "<string: operation category>",
   "typeOfPayment": "<string: payment method>",
   "detail": "<string: transaction description>",
@@ -142,8 +142,8 @@ Rules:
    - If no date found, use today: day="${currentDate.getDate()}", month="${currentDate.toLocaleString('en', { month: 'short' })}", year="${currentDate.getFullYear()}"
 
 2. Property:
-   - Look for property names like "Sia Moon", "Alesia House", "Villa 1", "Villa 2", etc.
-   - Common properties: "Sia Moon", "Alesia House"
+   - Look for property names like "Sia Moon" or "Alesia House"
+   - ONLY valid properties: "Sia Moon", "Alesia House"
    - Default to "Sia Moon" if not specified
 
 3. Type of Operation (typeOfOperation):
