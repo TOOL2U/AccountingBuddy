@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCachedCategory, cacheVendorCategory } from '@/utils/vendorCache';
 import { compressImage, shouldCompress, formatFileSize } from '@/utils/imageCompression';
+import { parseManualCommand, getCommandHistory, saveCommandToHistory } from '@/utils/manualParse';
 
 export default function UploadPage() {
   const router = useRouter();
@@ -14,7 +15,19 @@ export default function UploadPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [comment, setComment] = useState<string>('');
 
+  // Manual entry state
+  const [manualCommand, setManualCommand] = useState<string>('');
+  const [isManualProcessing, setIsManualProcessing] = useState(false);
+  const [manualError, setManualError] = useState<string>('');
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+
   const acceptedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+
+  // Load command history on mount
+  useEffect(() => {
+    setCommandHistory(getCommandHistory());
+  }, []);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -64,6 +77,96 @@ export default function UploadPage() {
     } else {
       // PDF preview placeholder
       setPreview('/pdf-placeholder.png');
+    }
+  };
+
+  const handleManualParse = async () => {
+    if (!manualCommand.trim()) {
+      setManualError('Please enter a command first.');
+      return;
+    }
+
+    setIsManualProcessing(true);
+    setManualError('');
+
+    try {
+      // Step 1: Try client-side parsing
+      const parseResult = parseManualCommand(manualCommand);
+
+      console.log('[MANUAL] Parse result:', parseResult);
+
+      let dataToPass = parseResult.data || {};
+
+      // Step 2: If confidence is low, call AI fallback
+      if (!parseResult.ok || parseResult.confidence < 0.75) {
+        console.log('[MANUAL] Low confidence, calling AI fallback...');
+
+        const extractResponse = await fetch('/api/extract', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: manualCommand,
+            comment: 'manual-command',
+            preparse: parseResult.data
+          }),
+        });
+
+        const extractData = await extractResponse.json();
+
+        if (extractData.data) {
+          // Merge AI results with parsed data
+          dataToPass = { ...parseResult.data, ...extractData.data };
+        }
+      }
+
+      // Save to history
+      saveCommandToHistory(manualCommand);
+      setCommandHistory(getCommandHistory());
+
+      // Navigate to review page
+      const manualId = `manual-${Date.now()}`;
+      const encodedData = encodeURIComponent(JSON.stringify(dataToPass));
+      router.push(`/review/${manualId}?data=${encodedData}`);
+    } catch (err) {
+      console.error('[MANUAL] Processing error:', err);
+      setManualError('❌ Failed to parse command. Please try again or use the receipt upload.');
+      setIsManualProcessing(false);
+    }
+  };
+
+  const handleManualKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter to submit (without Shift)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleManualParse();
+      return;
+    }
+
+    // Up arrow - navigate backwards through history
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (commandHistory.length > 0) {
+        const newIndex = historyIndex < commandHistory.length - 1 ? historyIndex + 1 : historyIndex;
+        setHistoryIndex(newIndex);
+        setManualCommand(commandHistory[newIndex]);
+      }
+      return;
+    }
+
+    // Down arrow - navigate forwards through history
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        setManualCommand(commandHistory[newIndex]);
+      } else if (historyIndex === 0) {
+        setHistoryIndex(-1);
+        setManualCommand('');
+      }
+      return;
     }
   };
 
@@ -164,23 +267,106 @@ export default function UploadPage() {
         </p>
       </div>
 
+      {/* Quick Entry (Manual Command) */}
+      <div className="mb-6 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">
+            ⚡ Quick Entry
+          </h2>
+          <p className="text-sm text-gray-600">
+            Type a one-line command to quickly add an entry
+          </p>
+        </div>
+
+        <textarea
+          value={manualCommand}
+          onChange={(e) => {
+            setManualCommand(e.target.value);
+            setHistoryIndex(-1);
+            setManualError('');
+          }}
+          onKeyDown={handleManualKeyDown}
+          placeholder="Example: alesia - 2000 - debit - cash"
+          rows={2}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none font-mono text-sm"
+        />
+
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="text-xs text-gray-500 space-y-1 flex-1">
+            <p>💡 <span className="font-mono text-gray-700">debit 2000 salaries cash</span> • <span className="font-mono text-gray-700">credit 5000 rent bank</span></p>
+            <p>⌨️ <strong className="text-gray-700">Enter</strong> to submit • <strong className="text-gray-700">Shift+Enter</strong> for new line • <strong className="text-gray-700">↑/↓</strong> for history</p>
+          </div>
+
+          <button
+            onClick={handleManualParse}
+            disabled={isManualProcessing || !manualCommand.trim()}
+            className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-md px-6 py-2 shadow-sm hover:shadow-md transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:shadow-sm flex items-center justify-center whitespace-nowrap sm:self-start"
+          >
+            {isManualProcessing ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Parsing…
+              </>
+            ) : (
+              'Parse & Review'
+            )}
+          </button>
+        </div>
+
+        {/* Manual Error Message */}
+        {manualError && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-600">{manualError}</p>
+          </div>
+        )}
+      </div>
+
+      {/* OR Divider */}
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200"></div>
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="px-3 bg-gray-50 text-gray-500 font-medium uppercase tracking-wider">or</span>
+        </div>
+      </div>
+
       {/* Upload Drop Zone */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`
-          border-2 border-dashed rounded-lg p-12 text-center transition-all
-          ${isDragging 
-            ? 'border-blue-500 bg-blue-50' 
-            : 'border-gray-300 bg-white hover:border-gray-400'
+          bg-white rounded-lg shadow-sm border-2 border-dashed p-12 text-center transition-all
+          ${isDragging
+            ? 'border-blue-400 bg-blue-50'
+            : 'border-gray-300 hover:border-gray-400'
           }
         `}
       >
         {!file ? (
           <div>
             <div className="text-6xl mb-4">📄</div>
-            <p className="text-lg font-medium text-gray-700 mb-2">
+            <p className="text-lg font-medium text-gray-900 mb-2">
               Drag and drop your receipt here
             </p>
             <p className="text-sm text-gray-500 mb-4">
@@ -193,11 +379,11 @@ export default function UploadPage() {
                 onChange={handleFileInput}
                 className="hidden"
               />
-              <span className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md px-6 py-3 cursor-pointer transition-colors inline-block">
+              <span className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-md px-6 py-2.5 cursor-pointer transition-colors inline-block shadow-sm hover:shadow-md">
                 Choose File
               </span>
             </label>
-            <p className="text-xs text-gray-400 mt-4">
+            <p className="text-xs text-gray-500 mt-4">
               Supported formats: JPG, PNG, PDF
             </p>
           </div>
@@ -208,13 +394,13 @@ export default function UploadPage() {
               <img
                 src={preview}
                 alt="Receipt preview"
-                className="max-w-xs mx-auto mb-4 rounded-lg shadow-md"
+                className="max-w-xs mx-auto mb-4 rounded-lg shadow-sm border border-gray-200"
               />
             )}
             {file.type === 'application/pdf' && (
               <div className="text-6xl mb-4">📑</div>
             )}
-            <p className="text-lg font-medium text-gray-700 mb-2">
+            <p className="text-base font-medium text-gray-900 mb-1">
               {file.name}
             </p>
             <p className="text-sm text-gray-500 mb-4">
@@ -226,7 +412,7 @@ export default function UploadPage() {
                 setPreview(null);
                 setError('');
               }}
-              className="text-sm text-gray-500 hover:text-gray-700 underline transition-colors duration-200"
+              className="text-sm text-blue-500 hover:text-blue-600 font-medium transition-colors duration-200"
             >
               Remove file
             </button>
@@ -236,13 +422,13 @@ export default function UploadPage() {
 
       {/* Comment Field (Optional) */}
       {file && (
-        <div className="mt-6">
+        <div className="mt-6 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
           <label
             htmlFor="comment"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
             Comment (optional)
-            <span className="text-gray-500 font-normal ml-2">
+            <span className="text-gray-500 font-normal ml-1">
               — Help the AI categorize this receipt
             </span>
           </label>
@@ -255,7 +441,7 @@ export default function UploadPage() {
             rows={2}
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-2">
             💡 Tip: Add context like "wall construction", "salaries", or "Villa 1" to improve category accuracy
           </p>
         </div>
@@ -263,7 +449,7 @@ export default function UploadPage() {
 
       {/* Error Message */}
       {error && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-md">
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
