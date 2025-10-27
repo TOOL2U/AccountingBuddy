@@ -5,6 +5,9 @@ import Navigation from '@/components/Navigation';
 export const metadata: Metadata = {
   title: 'Accounting Buddy',
   description: 'AI-powered receipt tracking and P&L automation',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

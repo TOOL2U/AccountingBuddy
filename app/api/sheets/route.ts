@@ -6,6 +6,18 @@ import { matchProperty, matchTypeOfOperation, matchTypeOfPayment } from '@/utils
 const SHEETS_WEBHOOK_URL = process.env.SHEETS_WEBHOOK_URL;
 const SHEETS_WEBHOOK_SECRET = process.env.SHEETS_WEBHOOK_SECRET;
 
+export async function GET() {
+  // Health check endpoint
+  const configured = !!(SHEETS_WEBHOOK_URL && SHEETS_WEBHOOK_SECRET);
+  
+  return NextResponse.json({
+    status: 'ok',
+    service: 'Google Sheets Webhook',
+    configured,
+    timestamp: new Date().toISOString()
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('[SHEETS] Starting Google Sheets append...');
