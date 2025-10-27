@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCachedCategory, cacheVendorCategory } from '@/utils/vendorCache';
 import { compressImage, shouldCompress, formatFileSize } from '@/utils/imageCompression';
@@ -637,9 +638,11 @@ export default function UploadPage() {
                   {/* Glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-status-info/20 rounded-xl blur-xl" />
 
-                  <img
+                  <Image
                     src={preview}
                     alt="Receipt preview"
+                    width={300}
+                    height={400}
                     className="relative max-w-xs mx-auto rounded-xl shadow-elev-3 border-2 border-border-light"
                   />
                 </motion.div>

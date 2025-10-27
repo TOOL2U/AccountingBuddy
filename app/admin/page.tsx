@@ -508,7 +508,7 @@ export default function AdminPage() {
               <p className="text-2xl md:text-3xl font-bold text-text-primary mb-1">
                 {stats.todayEntries}
               </p>
-              <p className="text-xs text-text-secondary">Today's Entries</p>
+              <p className="text-xs text-text-secondary">Today&apos;s Entries</p>
             </div>
           </Card>
         </motion.div>

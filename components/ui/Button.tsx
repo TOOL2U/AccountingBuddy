@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 
 interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
-  variant?: 'primary' | 'outline' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   children: React.ReactNode;
@@ -21,6 +21,7 @@ export default function Button({
 
   const variantClasses = {
     primary: 'bg-brand-primary hover:bg-brand-secondary text-white shadow-elev-1 hover:shadow-elev-2 disabled:bg-text-tertiary disabled:cursor-not-allowed',
+    secondary: 'bg-surface-2 hover:bg-surface-3 text-text-primary border border-border-light shadow-elev-1 hover:shadow-elev-2 disabled:bg-text-tertiary disabled:cursor-not-allowed',
     outline: 'border border-border-light text-text-primary hover:bg-surface-2 hover:border-border-medium disabled:opacity-50 disabled:cursor-not-allowed',
     ghost: 'text-text-primary hover:bg-surface-1 disabled:opacity-50 disabled:cursor-not-allowed',
     danger: 'bg-status-danger hover:bg-red-600 text-white shadow-elev-1 hover:shadow-elev-2 disabled:bg-text-tertiary disabled:cursor-not-allowed',
