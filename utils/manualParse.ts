@@ -214,6 +214,11 @@ export function parseManualCommand(input: string): ParseResult {
     }
     confidence += 0.4;
     reasons.push(`Detected ${transactionType} transaction`);
+  } else {
+    // Default to debit transaction when no type is specified
+    data.debit = 0;
+    data.credit = 0;
+    reasons.push('No transaction type specified - defaulting to debit');
   }
   
   // 2. Extract amount
@@ -221,11 +226,14 @@ export function parseManualCommand(input: string): ParseResult {
   if (amount !== null) {
     if (transactionType === 'credit') {
       data.credit = amount;
+      data.debit = 0; // Ensure debit is 0 for credit transactions
     } else {
+      // Default to debit for all other cases (including when no transaction type is detected)
       data.debit = amount;
+      data.credit = 0; // Ensure credit is 0 for debit transactions
     }
     confidence += 0.4;
-    reasons.push(`Extracted amount: ${amount}`);
+    reasons.push(`Extracted amount: ${amount} (${transactionType === 'credit' ? 'credit' : 'debit - default'})`);
   }
   
   // 3. Extract date
@@ -271,8 +279,8 @@ export function parseManualCommand(input: string): ParseResult {
     confidence += 0.3;
     reasons.push(`Detected operation: ${operation}`);
   } else {
-    // Use "Uncategorized" to force user selection on review page
-    data.typeOfOperation = 'Uncategorized';
+    // Use empty string to show "Select operation type" on review page
+    data.typeOfOperation = '';
   }
   
   // 7. Extract detail/description

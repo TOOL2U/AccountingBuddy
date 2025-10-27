@@ -7,10 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getCachedCategory, cacheVendorCategory } from '@/utils/vendorCache';
 import { compressImage, shouldCompress, formatFileSize } from '@/utils/imageCompression';
 import { parseManualCommand, getCommandHistory, saveCommandToHistory } from '@/utils/manualParse';
+import { getOptions } from '@/utils/matchOption';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Textarea from '@/components/ui/Textarea';
-import { Zap, Camera, Upload, FileText, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Zap, Camera, Upload, FileText, Sparkles, ArrowRight, CheckCircle2, Search, X } from 'lucide-react';
 
 export default function UploadPage() {
   const router = useRouter();
@@ -28,12 +29,43 @@ export default function UploadPage() {
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
 
+  // Category search state
+  const [categorySearch, setCategorySearch] = useState<string>('');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
   const acceptedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+
+  // Get dropdown options
+  const options = getOptions();
 
   // Load command history on mount
   useEffect(() => {
     setCommandHistory(getCommandHistory());
   }, []);
+
+  // Filter categories based on search
+  const filteredCategories = categorySearch.trim()
+    ? options.typeOfOperation.filter(category => {
+        // Filter by search term
+        return category.toLowerCase().includes(categorySearch.toLowerCase());
+      }).slice(0, 8) // Limit to 8 results for better UX
+    : [];
+
+  // Handle category selection
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    setCategorySearch('');
+    setShowCategoryDropdown(false);
+    // Don't modify the manual command - category will be applied on review page
+  };
+
+  // Handle category search input
+  const handleCategorySearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCategorySearch(value);
+    setShowCategoryDropdown(value.trim().length > 0);
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -100,6 +132,10 @@ export default function UploadPage() {
       const parseResult = parseManualCommand(manualCommand);
 
       let dataToPass = parseResult.data || {};
+      
+      // CRITICAL: Always preserve original user input in detail field (never let AI modify this)
+      dataToPass.detail = manualCommand;
+      console.log(`[MANUAL] Preserving user input as detail: "${manualCommand}"`);
 
       // Step 2: If confidence is low, call AI fallback
       if (!parseResult.ok || parseResult.confidence < 0.75) {
@@ -112,7 +148,7 @@ export default function UploadPage() {
           },
           body: JSON.stringify({
             text: manualCommand,
-            comment: 'manual-command',
+            comment: '"Quick Entry"',
             preparse: parseResult.data
           }),
         });
@@ -121,7 +157,27 @@ export default function UploadPage() {
 
         if (extractData && !extractData.error) {
           // Merge AI results with parsed data, preserving AI confidence scores
+          // But preserve the original manual command as detail
+          const originalDetail = dataToPass.detail; // Already set to manualCommand above
           dataToPass = { ...parseResult.data, ...extractData };
+          dataToPass.detail = originalDetail; // Always keep original user input
+        }
+      }
+
+      // CRITICAL: Add selected category from search box AFTER AI processing (should never be overridden)
+      if (selectedCategory) {
+        console.log(`[MANUAL] OVERRIDING with search box selection: ${selectedCategory}`);
+        dataToPass.typeOfOperation = selectedCategory;
+      }
+
+      // CRITICAL: Ensure amount defaults to debit unless explicitly credit
+      if ((dataToPass.credit ?? 0) > 0 && (dataToPass.debit ?? 0) === 0) {
+        // Only allow credit if there are explicit credit/income keywords in the original input
+        const creditKeywords = /(credit|income|revenue|sales|rental|deposit|received)/i;
+        if (!creditKeywords.test(manualCommand)) {
+          console.log(`[MANUAL] Moving amount from credit to debit (no credit keywords found): ${dataToPass.credit}`);
+          dataToPass.debit = dataToPass.credit ?? 0;
+          dataToPass.credit = 0;
         }
       }
 
@@ -132,6 +188,10 @@ export default function UploadPage() {
       // Navigate to review page
       const manualId = `manual-${Date.now()}`;
       const encodedData = encodeURIComponent(JSON.stringify(dataToPass));
+      
+      // Clear the selected category after processing
+      setSelectedCategory('');
+      
       router.push(`/review/${manualId}?data=${encodedData}`);
     } catch (err) {
       console.error('[MANUAL] Processing error:', err);
@@ -236,6 +296,30 @@ export default function UploadPage() {
       // Get extracted data
       const dataToPass = extractData.data || extractData;
 
+      // CRITICAL: Preserve user comment in detail field if provided (takes priority over OCR text)
+      if (comment.trim()) {
+        console.log(`[FILE UPLOAD] Using user comment as detail: ${comment.trim()}`);
+        dataToPass.detail = comment.trim();
+      }
+      
+      // CRITICAL: Add selected category from search box AFTER AI processing (should never be overridden)
+      if (selectedCategory) {
+        console.log(`[FILE UPLOAD] OVERRIDING with search box selection: ${selectedCategory}`);
+        dataToPass.typeOfOperation = selectedCategory;
+      }
+
+      // CRITICAL: Ensure amount defaults to debit unless explicitly credit
+      if ((dataToPass.credit ?? 0) > 0 && (dataToPass.debit ?? 0) === 0) {
+        // Only allow credit if there are explicit credit/income keywords in the OCR text or user comment
+        const textToCheck = `${ocrData.text} ${comment}`.toLowerCase();
+        const creditKeywords = /(credit|income|revenue|sales|rental|deposit|received)/i;
+        if (!creditKeywords.test(textToCheck)) {
+          console.log(`[FILE UPLOAD] Moving amount from credit to debit (no credit keywords found): ${dataToPass.credit}`);
+          dataToPass.debit = dataToPass.credit ?? 0;
+          dataToPass.credit = 0;
+        }
+      }
+
       // Check cache for detail-typeOfOperation mapping (similar to vendor-category)
       // Note: We're using detail as the key (like vendor) and typeOfOperation as the value (like category)
       if (dataToPass.detail && dataToPass.detail.trim()) {
@@ -243,7 +327,7 @@ export default function UploadPage() {
         if (cachedOperation) {
           console.log(`Using cached operation type "${cachedOperation}" for detail "${dataToPass.detail}"`);
           dataToPass.typeOfOperation = cachedOperation;
-        } else if (dataToPass.typeOfOperation && dataToPass.typeOfOperation !== 'Uncategorized') {
+        } else if (dataToPass.typeOfOperation && dataToPass.typeOfOperation !== '') {
           // Cache the AI-extracted operation type for future use
           cacheVendorCategory(dataToPass.detail, dataToPass.typeOfOperation);
           console.log(`Cached operation type "${dataToPass.typeOfOperation}" for detail "${dataToPass.detail}"`);
@@ -252,6 +336,10 @@ export default function UploadPage() {
 
       // Navigate to review page with extracted data
       const encodedData = encodeURIComponent(JSON.stringify(dataToPass));
+      
+      // Clear the selected category after processing
+      setSelectedCategory('');
+      
       router.push(`/review/${ocrData.id}?data=${encodedData}`);
     } catch (err) {
       console.error('Processing error:', err);
@@ -342,6 +430,23 @@ export default function UploadPage() {
         transition={{ delay: 0.4, type: 'spring', stiffness: 100 }}
         className="mb-6 relative"
       >
+        {/* Backdrop overlay when search is active */}
+        <AnimatePresence>
+          {categorySearch.trim() && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+              onClick={() => {
+                setCategorySearch('');
+                setShowCategoryDropdown(false);
+              }}
+            />
+          )}
+        </AnimatePresence>
+
         {/* Glow effect behind card */}
         <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-status-info/20 rounded-2xl blur-xl opacity-50" />
 
@@ -383,7 +488,7 @@ export default function UploadPage() {
                 setManualError('');
               }}
               onKeyDown={handleManualKeyDown}
-              placeholder="Example: alesia - 2000 - debit - cash"
+              placeholder="Example: alesia - 2000 - debit - cash - landscaping"
               rows={2}
               className="text-base bg-surface-2 border-border-light focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/30 transition-all"
             />
@@ -396,15 +501,117 @@ export default function UploadPage() {
                 <CheckCircle2 className="w-5 h-5 text-status-success" />
               </motion.div>
             )}
+            
           </div>
+
+          {/* Category Search - Optional Helper */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-4"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Search className="w-4 h-4 text-brand-primary" />
+              <span className="text-sm font-medium text-text-primary">Category Search</span>
+              <span className="text-xs px-2 py-0.5 bg-status-info/20 text-status-info rounded-full border border-status-info/30">
+                Optional
+              </span>
+            </div>
+            
+            <div className={`relative ${categorySearch.trim() ? 'z-50' : ''}`}>
+              <input
+                type="text"
+                value={categorySearch}
+                onChange={handleCategorySearchChange}
+                onFocus={() => categorySearch.trim() && setShowCategoryDropdown(true)}
+                onBlur={() => {
+                  // Delay hiding to allow clicks on dropdown items
+                  setTimeout(() => setShowCategoryDropdown(false), 150);
+                }}
+                placeholder="Search categories... e.g. 'construction', 'electric', 'salary'"
+                className="w-full px-4 py-2.5 text-sm bg-surface-2 border border-border-light rounded-xl text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/30 transition-all"
+              />
+              
+              {categorySearch && (
+                <button
+                  onClick={() => {
+                    setCategorySearch('');
+                    setShowCategoryDropdown(false);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              
+              {/* Dropdown with filtered categories */}
+              <AnimatePresence>
+                {showCategoryDropdown && filteredCategories.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full left-0 right-0 mt-1 bg-surface-1 border border-border-light rounded-xl shadow-elev-2 max-h-48 overflow-y-auto z-50"
+                  >
+                    {filteredCategories.map((category, index) => (
+                      <motion.button
+                        key={category}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.02 }}
+                        onClick={() => handleCategorySelect(category)}
+                        className="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-surface-2 focus:bg-surface-2 focus:outline-none transition-colors first:rounded-t-xl last:rounded-b-xl border-b border-border-light last:border-b-0"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="flex-1">{category}</span>
+                          <ArrowRight className="w-3 h-3 text-text-tertiary" />
+                        </div>
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              {/* No results message */}
+              <AnimatePresence>
+                {showCategoryDropdown && categorySearch.trim() && filteredCategories.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full left-0 right-0 mt-1 bg-surface-1 border border-border-light rounded-xl shadow-elev-2 p-4 text-center z-50"
+                  >
+                    <p className="text-sm text-text-tertiary">No categories found for "{categorySearch}"</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            
+            {selectedCategory && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-brand-primary/20 text-brand-primary text-xs rounded-full border border-brand-primary/30"
+              >
+                <CheckCircle2 className="w-3 h-3" />
+                Selected: {selectedCategory}
+                <button
+                  onClick={() => setSelectedCategory('')}
+                  className="ml-1 hover:text-brand-primary/70 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </motion.div>
+            )}
+          </motion.div>
 
           {/* Hints with icons */}
           <div className="mt-3 space-y-1.5">
             <div className="flex items-start gap-2 text-xs text-text-tertiary">
               <Sparkles className="w-3 h-3 text-brand-primary mt-0.5 flex-shrink-0" />
-              <span>
-                Try: <span className="font-mono text-text-secondary bg-surface-2 px-1.5 py-0.5 rounded">debit 2000 salaries cash</span>
-              </span>
+              
             </div>
             <div className="flex items-start gap-2 text-xs text-text-tertiary hidden sm:flex">
               <ArrowRight className="w-3 h-3 text-status-info mt-0.5 flex-shrink-0" />

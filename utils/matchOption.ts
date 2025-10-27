@@ -177,11 +177,11 @@ export function matchProperty(input: string, comment?: string): MatchResult {
  */
 export function matchTypeOfOperation(input: string, comment?: string): MatchResult {
   if (!input && !comment) {
-    return { value: 'Uncategorized', confidence: 0.0, matched: false };
+    return { value: '', confidence: 0.0, matched: false };
   }
 
   const searchText = `${input} ${comment || ''}`.toLowerCase().trim();
-  let bestMatch = { value: 'Uncategorized', confidence: 0.0, matched: false };
+  let bestMatch = { value: '', confidence: 0.0, matched: false };
 
   // Try exact match first
   for (const operation of options.typeOfOperation) {

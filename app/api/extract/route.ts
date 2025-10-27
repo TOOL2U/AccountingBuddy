@@ -11,7 +11,7 @@ const FALLBACK_DATA = {
   month: '',
   year: '',
   property: 'Sia Moon - Land - General',
-  typeOfOperation: 'EXP - Construction - Overheads/General/Unclassified',
+  typeOfOperation: '',
   typeOfPayment: '',
   detail: '',
   ref: '',
@@ -182,6 +182,7 @@ SMART CATEGORIZATION RULES:
    - "furniture", "decorative", "decor", "decoration", "art", "vase", "pillow" → "EXP - Repairs & Maintenance  - Furniture & Decorative Items"
    - "painting", "paint", "painter", "decorative painting" → "EXP - Repairs & Maintenance - Painting & Decoration"
    - "salary", "salaries", "staff" → "EXP - HR - Employees Salaries"
+   - If NO CLEAR MATCH from above categories → leave "typeOfOperation" as empty string ""
 
 3. Payment Methods:
    - "cash" → "Cash"
@@ -194,7 +195,7 @@ Output fields:
   "month": "<string: 3-letter month, e.g., 'Feb', 'Oct', 'Jun', 'Aug', 'Sep'>",
   "year": "<string: 4-digit year, e.g., '2025'>",
   "property": "<string: exact property name from dropdown>",
-  "typeOfOperation": "<string: exact operation category from dropdown>",
+  "typeOfOperation": "<string: exact operation category from dropdown, or empty string if unclear>",
   "typeOfPayment": "<string: exact payment method from dropdown>",
   "detail": "<string: transaction description>",
   "ref": "<string: invoice/reference number, optional>",
@@ -205,16 +206,10 @@ Output fields:
 CRITICAL RULES:
 1. Date: Split into day, month (3-letter), year. If no date, use today: day="${currentDate.getDate()}", month="${currentDate.toLocaleString('en', { month: 'short' })}", year="${currentDate.getFullYear()}"
 2. Property: Must be exact match from dropdown list. Default to "Sia Moon - Land - General"
-3. Operation: Must be exact match from dropdown list. Use smart categorization above. NEVER select headers: "REVENUES", "Fixed Costs", "EXPENSES", "Property"
+3. Operation: ONLY use exact match from dropdown list if confident match exists. If uncertain or no clear match → use empty string "". DO NOT guess categories.
 4. Payment: Must be exact match from dropdown list
-5. Amount: Remove ฿, commas, "baht". For expenses → debit field. For income → credit field
+5. Amount: Remove ฿, commas, "baht". For expenses → debit field. For income → credit field. DEFAULT: If unclear, put amount in debit field (most transactions are expenses)
 6. Detail: Keep concise but descriptive, capitalize first letter
-
-FORBIDDEN CATEGORIES (these are headers, not selectable options):
-- "REVENUES" (use specific revenue type like "Revenue - Sales")
-- "Fixed Costs" (use specific cost type)
-- "EXPENSES" (use specific expense type like "EXP - Construction - Wall")
-- "Property" (use actual property name)
 
 Return ONLY valid JSON, no additional text.`;
 
@@ -277,7 +272,7 @@ Return ONLY valid JSON, no additional text.`;
         month: extracted.month || currentDate.toLocaleString('en', { month: 'short' }),
         year: extracted.year || String(currentDate.getFullYear()),
         property: extracted.property || 'Sia Moon',
-        typeOfOperation: extracted.typeOfOperation || 'Uncategorized',
+        typeOfOperation: extracted.typeOfOperation || '',
         typeOfPayment: extracted.typeOfPayment || '',
         detail: extracted.detail || '',
         ref: extracted.ref || '',
@@ -285,7 +280,7 @@ Return ONLY valid JSON, no additional text.`;
         credit: Number(extracted.credit) || 0,
       };
 
-      // Normalize dropdown fields to match canonical options
+      // Normalize dropdown values using the matchOption utility
       const normalized = normalizeDropdownFields(
         {
           property: extracted.property,
@@ -299,6 +294,12 @@ Return ONLY valid JSON, no additional text.`;
       extracted.property = normalized.property.value;
       extracted.typeOfOperation = normalized.typeOfOperation.value;
       extracted.typeOfPayment = normalized.typeOfPayment.value;
+      
+      // If operation confidence is too low, set to empty string
+      if (normalized.typeOfOperation.confidence < 0.7) {
+        extracted.typeOfOperation = '';
+      }
+      
       extracted.confidence = {
         property: normalized.property.confidence,
         typeOfOperation: normalized.typeOfOperation.confidence,

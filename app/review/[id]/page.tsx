@@ -60,7 +60,7 @@ export default function ReviewPage({ params }: any) {
           month: extractedData.month || '',
           year: extractedData.year || '',
           property: extractedData.property || 'Sia Moon',
-          typeOfOperation: extractedData.typeOfOperation || 'Uncategorized',
+          typeOfOperation: extractedData.typeOfOperation || '',
           typeOfPayment: extractedData.typeOfPayment || '',
           detail: extractedData.detail || '',
           ref: extractedData.ref || '',
@@ -97,7 +97,7 @@ export default function ReviewPage({ params }: any) {
     const { name, value } = e.target;
     
     // Clear category error when user selects a valid category
-    if (name === 'typeOfOperation' && value && !['', 'Uncategorized', 'REVENUES', 'Fixed Costs', 'EXPENSES', 'Property'].includes(value)) {
+    if (name === 'typeOfOperation' && value && value !== '') {
       setCategoryError(false);
     }
     
@@ -113,13 +113,13 @@ export default function ReviewPage({ params }: any) {
     // Prevent double submission
     if (isSending) return;
 
-    // Validation: Check if category (typeOfOperation) is selected and not a header
-    const headerCategories = ['', 'Uncategorized', 'REVENUES', 'Fixed Costs', 'EXPENSES', 'Property'];
+    // Validation: Check if category (typeOfOperation) is selected and not invalid
+    const invalidCategories = [''];
     console.log('[VALIDATION] Checking category:', formData.typeOfOperation);
-    if (!formData.typeOfOperation || headerCategories.includes(formData.typeOfOperation)) {
+    if (!formData.typeOfOperation || invalidCategories.includes(formData.typeOfOperation)) {
       console.error('[VALIDATION] Invalid category detected:', formData.typeOfOperation);
       setCategoryError(true);
-      setToastMessage('🚨 ERROR: Please select a specific category from "Type of Operation" dropdown before submitting to Google Sheets');
+      setToastMessage('🚨 ERROR: Please select a valid category from "Type of Operation" dropdown before submitting to Google Sheets');
       setToastType('error');
       setShowToast(true);
       
@@ -186,7 +186,7 @@ export default function ReviewPage({ params }: any) {
 
       // Cache the property-typeOfOperation mapping for future use
       // Note: We're caching based on detail (vendor-like) and typeOfOperation (category-like)
-      if (formData.detail && formData.detail.trim() && formData.typeOfOperation && formData.typeOfOperation !== 'Uncategorized') {
+      if (formData.detail && formData.detail.trim() && formData.typeOfOperation && formData.typeOfOperation !== '') {
         cacheVendorCategory(formData.detail, formData.typeOfOperation);
         console.log(`Cached operation type "${formData.typeOfOperation}" for detail "${formData.detail}"`);
       }

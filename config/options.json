@@ -6,15 +6,12 @@
     "Parents House"
   ],
   "typeOfOperation": [
-    "REVENUES",
     "Revenue - Commision",
     "Revenue - Sales",
     "Revenue - Services",
-    "Fixed Costs",
     "EXP - Utilities - Gas",
     "EXP - Utilities - Water",
     "EXP - Utilities  - Electricity",
-    "EXPENSES",
     "EXP - Administration & General - License & Certificates",
     "EXP - Construction - Structure",
     "EXP - Construction - Overheads/General/Unclassified",
@@ -34,7 +31,6 @@
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
     "EXP - Construction - Wall",
-    "Property",
     "Sia Moon - Land - General",
     "Alesia House",
     "Lanna House",
@@ -83,13 +79,6 @@
       ]
     },
     "typeOfOperation": {
-      "REVENUES": [
-        "revenue",
-        "revenues",
-        "income",
-        "earning",
-        "earnings"
-      ],
       "Revenue - Commision": [
         "commission",
         "commision",
@@ -114,14 +103,6 @@
         "work",
         "professional service",
         "labor income"
-      ],
-      "Fixed Costs": [
-        "fixed",
-        "fixed cost",
-        "fixed costs",
-        "overhead",
-        "recurring",
-        "monthly fixed"
       ],
       "EXP - Utilities - Gas": [
         "gas",
@@ -149,14 +130,6 @@
         "power bill",
         "mea",
         "pea"
-      ],
-      "EXPENSES": [
-        "expense",
-        "expenses",
-        "cost",
-        "costs",
-        "spending",
-        "expenditure"
       ],
       "EXP - Administration & General - License & Certificates": [
         "license",
