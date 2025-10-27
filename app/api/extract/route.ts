@@ -151,6 +151,20 @@ Example 2: "labour payment cash 135200 sia moon"
   "credit": 0
 }
 
+Example 3: "electric supplies cable wire bank transfer 3200"
+→ {
+  "day": "${currentDate.getDate()}",
+  "month": "${currentDate.toLocaleString('en', { month: 'short' })}",
+  "year": "${currentDate.getFullYear()}",
+  "property": "Sia Moon - Land - General",
+  "typeOfOperation": "EXP - Construction - Electric Supplies",
+  "typeOfPayment": "Bank transfer",
+  "detail": "Electric supplies cable wire",
+  "ref": "",
+  "debit": 3200,
+  "credit": 0
+}
+
 SMART CATEGORIZATION RULES:
 1. Property Detection:
    - "sia moon" → "Sia Moon - Land - General" (default)
@@ -158,13 +172,15 @@ SMART CATEGORIZATION RULES:
    - "lanna house" → "Lanna House"
    - "parents house" → "Parents House"
 
-2. Operation Categories:
+2. Operation Categories (prioritize more specific matches):
+   - "electric supplies", "electrical supplies", "electric materials", "cable", "wire", "electrical materials" → "EXP - Construction - Electric Supplies"
+   - "electric bill", "electricity bill", "power bill", "utility electric" → "EXP - Utilities  - Electricity"
+   - "electrical repair", "electrician", "electric maintenance" → "EXP - Repairs & Maintenance - Electrical & Mechanical"
    - "wall", "materials", "construction" → "EXP - Construction - Wall"
    - "aircon", "air purifier", "electronics" → "EXP - Appliances & Electronics"
    - "door", "window", "lock", "hardware" → "EXP - Windows, Doors, Locks & Hardware"
    - "decor", "decoration", "pillow", "elephant" → "EXP - Decor"
    - "salary", "salaries", "staff" → "EXP - HR - Employees Salaries"
-   - "electric", "electrical", "cable" → "EXP - Construction - Electric Supplies"
 
 3. Payment Methods:
    - "cash" → "Cash"
