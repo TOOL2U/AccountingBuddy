@@ -105,6 +105,45 @@ export default function ReviewPage({ params }: any) {
     // Prevent double submission
     if (isSending) return;
 
+    // Validation: Check if category (typeOfOperation) is selected
+    if (!formData.typeOfOperation || formData.typeOfOperation === '' || formData.typeOfOperation === 'Uncategorized') {
+      setToastMessage('❌ Please select a category (Type of Operation) before submitting');
+      setToastType('error');
+      setShowToast(true);
+      
+      // Hide error toast after 5 seconds
+      setTimeout(() => {
+        setShowToast(false);
+      }, 5000);
+      
+      return;
+    }
+
+    // Additional validation: Check required fields
+    if (!formData.day || !formData.month || !formData.year) {
+      setToastMessage('❌ Please fill in all date fields');
+      setToastType('error');
+      setShowToast(true);
+      
+      setTimeout(() => {
+        setShowToast(false);
+      }, 5000);
+      
+      return;
+    }
+
+    if (!formData.property) {
+      setToastMessage('❌ Please select a property');
+      setToastType('error');
+      setShowToast(true);
+      
+      setTimeout(() => {
+        setShowToast(false);
+      }, 5000);
+      
+      return;
+    }
+
     setIsSending(true);
 
     try {
