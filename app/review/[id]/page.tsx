@@ -461,7 +461,7 @@ export default function ReviewPage({ params }: any) {
               isLoading={isSending}
               className="flex-1"
             >
-              {isSending ? 'Sending...' : 'Send to Google Sheet'}
+              {isSending ? 'Sending...' : 'Send'}
             </Button>
           </div>
         </form>
