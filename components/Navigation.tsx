@@ -73,18 +73,6 @@ export default function Navigation() {
               >
                 Accounting Buddy
               </motion.span>
-
-              {/* Sparkle decoration */}
-              <motion.span
-                animate={{
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 180, 360]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute -top-1 -right-3 text-xs"
-              >
-                ✨
-              </motion.span>
             </div>
           </Link>
 

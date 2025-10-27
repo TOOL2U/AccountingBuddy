@@ -317,16 +317,7 @@ export default function UploadPage() {
           </span>
 
           {/* Sparkle decorations */}
-          <motion.span
-            animate={{
-              scale: [1, 1.2, 1],
-              rotate: [0, 180, 360]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="absolute -top-2 -right-2 text-xl"
-          >
-            ✨
-          </motion.span>
+
         </motion.h1>
 
         {/* Subtitle with typing effect feel */}
