@@ -10,8 +10,8 @@ const FALLBACK_DATA = {
   day: '',
   month: '',
   year: '',
-  property: 'Sia Moon',
-  typeOfOperation: 'Uncategorized',
+  property: 'Sia Moon - Land - General',
+  typeOfOperation: 'EXP - Construction - Overheads/General/Unclassified',
   typeOfPayment: '',
   detail: '',
   ref: '',
@@ -106,101 +106,94 @@ async function callOpenAI(text: string, comment?: string): Promise<ExtractedData
       ? `Receipt text: "${text}"\n\nUser comment (use this to guide categorization): "${comment}"`
       : `Receipt text: "${text}"`;
 
-    const prompt = `Extract structured accounting data in JSON for this text:
+    const prompt = `You are an expert accounting data extraction AI trained on real Thai business transaction data. Extract structured accounting data in JSON for this text:
+
 ${contextText}
 
-IMPORTANT: You must select values from these EXACT dropdown options:
+CRITICAL: Use EXACT values from these live dropdown options:
 
-Properties (choose one):
+Properties (choose one - these are the ONLY valid options):
 ${options.properties.map(p => `- "${p}"`).join('\n')}
 
-Type of Operation (choose one):
-${options.typeOfOperation.slice(0, 15).map(op => `- "${op}"`).join('\n')}
-... and more (match exactly or use "Uncategorized")
+Type of Operation (choose one - match EXACTLY):
+${options.typeOfOperation.map(op => `- "${op}"`).join('\n')}
 
 Type of Payment (choose one):
 ${options.typeOfPayment.map(tp => `- "${tp}"`).join('\n')}
+
+TRAINING EXAMPLES (learn from real P&L data):
+
+Example 1: "27/Feb/2025 Sia Moon wall materials bank transfer 4785 baht"
+→ {
+  "day": "27",
+  "month": "Feb", 
+  "year": "2025",
+  "property": "Sia Moon - Land - General",
+  "typeOfOperation": "EXP - Construction - Wall",
+  "typeOfPayment": "Bank transfer",
+  "detail": "Materials",
+  "ref": "",
+  "debit": 4785,
+  "credit": 0
+}
+
+Example 2: "labour payment cash 135200 sia moon"
+→ {
+  "day": "${currentDate.getDate()}",
+  "month": "${currentDate.toLocaleString('en', { month: 'short' })}",
+  "year": "${currentDate.getFullYear()}",
+  "property": "Sia Moon - Land - General",
+  "typeOfOperation": "EXP - Construction - Wall",
+  "typeOfPayment": "Cash",
+  "detail": "Labour",
+  "ref": "",
+  "debit": 135200,
+  "credit": 0
+}
+
+SMART CATEGORIZATION RULES:
+1. Property Detection:
+   - "sia moon" → "Sia Moon - Land - General" (default)
+   - "alesia house" → "Alesia House"
+   - "lanna house" → "Lanna House"
+   - "parents house" → "Parents House"
+
+2. Operation Categories:
+   - "wall", "materials", "construction" → "EXP - Construction - Wall"
+   - "aircon", "air purifier", "electronics" → "EXP - Appliances & Electronics"
+   - "door", "window", "lock", "hardware" → "EXP - Windows, Doors, Locks & Hardware"
+   - "decor", "decoration", "pillow", "elephant" → "EXP - Decor"
+   - "salary", "salaries", "staff" → "EXP - HR - Employees Salaries"
+   - "electric", "electrical", "cable" → "EXP - Construction - Electric Supplies"
+
+3. Payment Methods:
+   - "cash" → "Cash"
+   - "transfer", "bank" → "Bank transfer"
+   - "card", "credit" → "Credit card"
 
 Output fields:
 {
   "day": "<string: day number, e.g., '27'>",
   "month": "<string: 3-letter month, e.g., 'Feb', 'Oct', 'Jun', 'Aug', 'Sep'>",
   "year": "<string: 4-digit year, e.g., '2025'>",
-  "property": "<string: property name, e.g., 'Sia Moon', 'Alesia House'>",
-  "typeOfOperation": "<string: operation category>",
-  "typeOfPayment": "<string: payment method>",
+  "property": "<string: exact property name from dropdown>",
+  "typeOfOperation": "<string: exact operation category from dropdown>",
+  "typeOfPayment": "<string: exact payment method from dropdown>",
   "detail": "<string: transaction description>",
   "ref": "<string: invoice/reference number, optional>",
   "debit": <number: expense amount, 0 if not applicable>,
   "credit": <number: income amount, 0 if not applicable>
 }
 
-Rules:
-1. Date Parsing:
-   - Split date into day, month (3-letter abbreviation), year
-   - Month must be 3 letters: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
-   - If no date found, use today: day="${currentDate.getDate()}", month="${currentDate.toLocaleString('en', { month: 'short' })}", year="${currentDate.getFullYear()}"
+CRITICAL RULES:
+1. Date: Split into day, month (3-letter), year. If no date, use today: day="${currentDate.getDate()}", month="${currentDate.toLocaleString('en', { month: 'short' })}", year="${currentDate.getFullYear()}"
+2. Property: Must be exact match from dropdown list. Default to "Sia Moon - Land - General"
+3. Operation: Must be exact match from dropdown list. Use smart categorization above
+4. Payment: Must be exact match from dropdown list
+5. Amount: Remove ฿, commas, "baht". For expenses → debit field. For income → credit field
+6. Detail: Keep concise but descriptive, capitalize first letter
 
-2. Property:
-   - Look for property names like "Sia Moon" or "Alesia House"
-   - ONLY valid properties: "Sia Moon", "Alesia House"
-   - Default to "Sia Moon" if not specified
-
-3. Type of Operation (typeOfOperation):
-   - For expenses: "EXP - <category> - <subcategory>"
-   - Common expense categories:
-     * "EXP - Construction - Wall"
-     * "EXP - Construction - Materials"
-     * "EXP - Construction - Electric"
-     * "EXP - Construction - Overheads/General/Unclassified"
-     * "EXP - Repairs & Maintenance - Electrical & Mechanical"
-     * "EXP - Appliances & Electronics"
-     * "EXP - Windows, Doors, Locks & Hardware"
-     * "EXP - Decor"
-     * "EXP - Salaries - Staff"
-     * "EXP - Utilities - Electric"
-   - For income: "INC - <category> - <subcategory>"
-   - Examples: "INC - Rental - Monthly", "INC - Sales - Products"
-   - Match the exact format from examples above
-   - Use "EXP - Uncategorized" if unclear
-
-4. Type of Payment (typeOfPayment):
-   - Options: "Cash", "Bank transfer", "Card", "Check", "Mobile payment"
-   - Note: "Bank transfer" has a space (not "Bank_transfer" or "BankTransfer")
-   - Infer from keywords: "cash" → "Cash", "bank transfer" or "transfer" → "Bank transfer", "card" → "Card"
-   - Default to "Cash" if payment method unclear
-
-5. Detail:
-   - Brief description of the transaction
-   - Examples from real data:
-     * "Materials" (for construction materials)
-     * "Labour" (for labor/worker payments)
-     * "Labour - painting" (for specific labor type)
-     * "Electric cable for gardening 100m" (specific item description)
-     * "Air purifier" (appliance purchase)
-     * "Termite treatment 2nd half for 2025 year" (service description)
-   - Keep it concise but descriptive
-   - Capitalize first letter
-
-6. Ref (optional):
-   - Invoice number, receipt number, or reference
-   - Leave empty string "" if not found
-   - Examples: "INV-12345", "Receipt #789"
-
-7. Debit vs Credit:
-   - If text mentions "paid", "expense", "cost", "purchase", "spent", "EXP" → fill debit, set credit to 0
-   - If text mentions "received", "income", "deposit", "earned", "INC" → fill credit, set debit to 0
-   - Extract only numeric value (remove currency symbols like ฿, $, €, commas, spaces)
-   - Examples: "฿4,785" → 4785, "135,200 baht" → 135200, "2000 baht" → 2000
-   - Use 0 for empty debit/credit
-
-8. Number Extraction:
-   - Remove all currency symbols (฿, $, €, £, ¥)
-   - Remove all commas and spaces from numbers
-   - Convert to plain integer or decimal
-   - Examples: "฿15,820" → 15820, "฿3,600" → 3600, "279" → 279
-
-Return a single JSON object only, no additional text.`;
+Return ONLY valid JSON, no additional text.`;
 
     const response = await fetch(OPENAI_API_URL, {
       method: 'POST',

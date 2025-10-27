@@ -1,25 +1,29 @@
 {
   "properties": [
-    "Sia Moon",
+    "Sia Moon - Land - General",
     "Alesia House",
     "Lanna House",
     "Parents House"
   ],
   "typeOfOperation": [
     "REVENUES",
-    "Commision",
-    "Sales",
-    "Services",
-    "COGS",
+    "Revenue - Commision", 
+    "Revenue - Sales",
+    "Revenue - Services",
+    "Fixed Costs",
+    "EXP - Utilities - Gas",
+    "EXP - Utilities - Water", 
+    "EXP - Utilities  - Electricity",
     "EXPENSES",
     "EXP - Administration & General - License & Certificates",
     "EXP - Construction - Structure",
     "EXP - Construction - Overheads/General/Unclassified",
+    "EXP - HR - Employees Salaries",
     "EXP - Administration & General - Legal",
     "EXP - Administration & General - Professional fees",
     "EXP - Administration & General - Office supplies",
     "EXP - Administration & General  - Subscription, Software & Membership",
-    "EXP - Construction - Electric",
+    "EXP - Construction - Electric Supplies",
     "EXP - Appliances & Electronics",
     "EXP - Windows, Doors, Locks & Hardware",
     "EXP - Decor",
@@ -29,286 +33,373 @@
     "EXP - Repairs & Maintenance - Electrical & Mechanical",
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
-    "EXP - Construction - Wall",
-    "Property",
-    "Sia Moon",
-    "Alesia House",
-    "Lanna House",
-    "Parents House"
+    "EXP - Construction - Wall"
   ],
   "typeOfPayment": [
     "Credit card",
-    "Bank transfer",
+    "Bank transfer", 
     "Cash"
   ],
   "keywords": {
+    "properties": {
+      "Sia Moon - Land - General": [
+        "sia",
+        "sia moon",
+        "moon",
+        "land",
+        "general",
+        "main",
+        "primary",
+        "default"
+      ],
+      "Alesia House": [
+        "alesia",
+        "alesia house",
+        "house 1",
+        "main house",
+        "big house"
+      ],
+      "Lanna House": [
+        "lanna",
+        "lanna house",
+        "house 2",
+        "second house",
+        "small house"
+      ],
+      "Parents House": [
+        "parents",
+        "parent",
+        "parents house",
+        "mom",
+        "dad",
+        "mother",
+        "father",
+        "family"
+      ]
+    },
     "typeOfOperation": {
-      "EXP - Construction - Wall": [
-        "wall",
-        "walls",
-        "construction wall",
-        "building wall",
-        "masonry"
+      "REVENUES": [
+        "revenue",
+        "revenues",
+        "income",
+        "earning",
+        "earnings"
       ],
-      "EXP - Construction - Materials": [
-        "materials",
-        "construction materials",
-        "building materials",
-        "cement",
-        "concrete",
-        "bricks",
-        "steel"
+      "Revenue - Commision": [
+        "commission",
+        "commision",
+        "referral",
+        "fee",
+        "broker",
+        "agent",
+        "finder fee"
       ],
-      "EXP - Construction - Electric": [
+      "Revenue - Sales": [
+        "sales",
+        "sale",
+        "selling",
+        "sold",
+        "product sales",
+        "merchandise"
+      ],
+      "Revenue - Services": [
+        "service",
+        "services",
+        "consulting",
+        "work",
+        "professional service",
+        "labor income"
+      ],
+      "Fixed Costs": [
+        "fixed",
+        "fixed cost",
+        "fixed costs",
+        "overhead",
+        "recurring",
+        "monthly fixed"
+      ],
+      "EXP - Utilities - Gas": [
+        "gas",
+        "lpg",
+        "cooking gas",
+        "propane",
+        "gas bill",
+        "gas tank",
+        "gas cylinder"
+      ],
+      "EXP - Utilities - Water": [
+        "water",
+        "water bill",
+        "tap water",
+        "water supply",
+        "plumbing",
+        "water meter"
+      ],
+      "EXP - Utilities  - Electricity": [
         "electric",
-        "electrical",
-        "wiring",
-        "cable",
-        "electrical work"
+        "electricity",
+        "power",
+        "electric bill",
+        "electricity bill",
+        "power bill",
+        "mea",
+        "pea"
+      ],
+      "EXPENSES": [
+        "expense",
+        "expenses",
+        "cost",
+        "costs",
+        "spending",
+        "expenditure"
+      ],
+      "EXP - Administration & General - License & Certificates": [
+        "license",
+        "licence",
+        "certificate",
+        "permit",
+        "registration",
+        "renewal",
+        "government fee",
+        "official document"
+      ],
+      "EXP - Construction - Structure": [
+        "structure",
+        "structural",
+        "foundation",
+        "concrete",
+        "steel",
+        "beam",
+        "column",
+        "framework",
+        "building structure"
       ],
       "EXP - Construction - Overheads/General/Unclassified": [
-        "construction",
-        "building",
+        "construction overhead",
         "general construction",
+        "misc construction",
+        "other construction",
+        "unclassified",
+        "general building",
+        "construction misc",
         "termite",
         "pest control"
       ],
-      "EXP - Repairs & Maintenance - Electrical & Mechanical": [
-        "repair",
-        "maintenance",
-        "electrical repair",
-        "mechanical",
-        "fix",
-        "fixing"
-      ],
-      "EXP - Repairs & Maintenance - Plumbing": [
-        "plumbing",
-        "plumber",
-        "pipes",
-        "water leak",
-        "drain"
-      ],
-      "EXP - Repairs & Maintenance - General": [
-        "repair",
-        "maintenance",
-        "fix",
-        "fixing",
-        "general repair"
-      ],
-      "EXP - Appliances & Electronics": [
-        "appliance",
-        "electronics",
-        "aircon",
-        "air conditioner",
-        "air purifier",
-        "dehumidifier",
-        "refrigerator",
-        "washing machine",
-        "tv",
-        "television"
-      ],
-      "EXP - Windows, Doors, Locks & Hardware": [
-        "window",
-        "door",
-        "lock",
-        "hardware",
-        "barn door",
-        "door handle",
-        "door stopper",
-        "sliding mechanism"
-      ],
-      "EXP - Decor": [
-        "decor",
-        "decoration",
-        "decorative",
-        "elephant",
-        "pillow",
-        "cushion",
-        "artwork",
-        "ornament"
-      ],
-      "EXP - Furniture": [
-        "furniture",
-        "chair",
-        "table",
-        "bed",
-        "sofa",
-        "desk",
-        "cabinet"
-      ],
-      "EXP - Administration & General - Employee Salaries": [
+      "EXP - HR - Employees Salaries": [
         "salary",
         "salaries",
         "wage",
         "wages",
-        "payroll",
-        "staff payment",
+        "staff",
         "employee",
-        "worker payment"
+        "worker",
+        "pay",
+        "payroll",
+        "labor cost",
+        "labour cost"
       ],
-      "EXP - Administration & General - Office Supplies": [
+      "EXP - Administration & General - Legal": [
+        "legal",
+        "lawyer",
+        "attorney",
+        "law",
+        "legal fee",
+        "court",
+        "litigation",
+        "contract review"
+      ],
+      "EXP - Administration & General - Professional fees": [
+        "professional",
+        "consultant",
+        "advisor",
+        "accountant",
+        "accounting",
+        "audit",
+        "professional service",
+        "expert"
+      ],
+      "EXP - Administration & General - Office supplies": [
         "office",
         "supplies",
         "stationery",
         "paper",
         "pen",
-        "printer"
+        "pencil",
+        "folder",
+        "printer",
+        "ink",
+        "office equipment"
       ],
-      "EXP - Administration & General - Professional Fees": [
-        "professional",
-        "fees",
-        "consultant",
-        "lawyer",
-        "accountant",
-        "legal"
+      "EXP - Administration & General  - Subscription, Software & Membership": [
+        "subscription",
+        "software",
+        "membership",
+        "app",
+        "saas",
+        "monthly subscription",
+        "license fee",
+        "club membership"
       ],
-      "EXP - Utilities - Electric": [
-        "electric bill",
-        "electricity",
-        "power bill",
-        "utility electric"
+      "EXP - Construction - Electric Supplies": [
+        "electric supplies",
+        "electrical",
+        "wire",
+        "cable",
+        "switch",
+        "outlet",
+        "breaker",
+        "conduit",
+        "electrical materials"
       ],
-      "EXP - Utilities - Water": [
-        "water bill",
-        "water utility",
-        "water payment"
+      "EXP - Appliances & Electronics": [
+        "appliance",
+        "appliances",
+        "electronics",
+        "tv",
+        "refrigerator",
+        "washing machine",
+        "aircon",
+        "air conditioner",
+        "fan",
+        "microwave",
+        "computer",
+        "phone"
       ],
-      "EXP - Utilities - Internet": [
-        "internet",
-        "wifi",
-        "broadband",
-        "internet bill"
-      ],
-      "EXP - Utilities - Gas": [
-        "gas",
-        "gas bill",
-        "lpg"
-      ],
-      "EXP - Cleaning & Maintenance": [
-        "cleaning",
-        "cleaner",
-        "housekeeping",
-        "maid",
-        "janitor"
-      ],
-      "EXP - Security": [
+      "EXP - Windows, Doors, Locks & Hardware": [
+        "window",
+        "windows",
+        "door",
+        "doors",
+        "lock",
+        "locks",
+        "hardware",
+        "handle",
+        "hinge",
+        "knob",
         "security",
-        "guard",
-        "alarm",
-        "cctv",
-        "surveillance"
+        "gate"
       ],
-      "EXP - Insurance": [
-        "insurance",
-        "insurance premium",
-        "coverage"
+      "EXP - Decor": [
+        "decor",
+        "decoration",
+        "decorative",
+        "art",
+        "painting",
+        "vase",
+        "furniture",
+        "pillow",
+        "curtain",
+        "ornament",
+        "design",
+        "aesthetic"
       ],
-      "EXP - Taxes & Fees": [
-        "tax",
-        "taxes",
-        "fee",
-        "fees",
-        "government fee",
-        "license"
+      "EXP - Repairs & Maintenance  - Waste removal": [
+        "waste",
+        "garbage",
+        "trash",
+        "rubbish",
+        "disposal",
+        "cleanup",
+        "cleaning service",
+        "waste management"
       ],
-      "EXP - Marketing & Advertising": [
+      "EXP - Repairs & Maintenance - Tools & Equipment": [
+        "tools",
+        "tool",
+        "equipment",
+        "hammer",
+        "drill",
+        "saw",
+        "screwdriver",
+        "wrench",
+        "machinery",
+        "repair tools"
+      ],
+      "EXP - Repairs & Maintenance - Painting & deco": [
+        "paint",
+        "painting",
+        "painter",
+        "brush",
+        "roller",
+        "color",
+        "wall painting",
+        "decoration paint"
+      ],
+      "EXP - Repairs & Maintenance - Electrical & Mechanical": [
+        "electrical repair",
+        "mechanical",
+        "repair",
+        "maintenance",
+        "fix",
+        "broken",
+        "service",
+        "technician",
+        "electrician"
+      ],
+      "EXP - Repairs & Maintenance - Landscaping": [
+        "landscape",
+        "landscaping",
+        "garden",
+        "gardening",
+        "grass",
+        "tree",
+        "plant",
+        "lawn",
+        "yard work",
+        "outdoor maintenance"
+      ],
+      "EXP - Sales & Marketing -  Professional Marketing Services": [
         "marketing",
         "advertising",
-        "advertisement",
         "promotion",
-        "social media"
+        "social media",
+        "facebook",
+        "google ads",
+        "seo",
+        "website",
+        "branding",
+        "pr"
       ],
-      "EXP - Transportation": [
-        "transportation",
-        "transport",
-        "fuel",
-        "gas",
-        "petrol",
-        "taxi",
-        "uber",
-        "grab"
-      ],
-      "EXP - Landscaping & Gardening": [
-        "landscaping",
-        "gardening",
-        "garden",
-        "plants",
-        "trees",
-        "lawn",
-        "grass"
-      ],
-      "INC - Rental - Monthly": [
-        "rental",
-        "rent",
-        "monthly rent",
-        "lease"
-      ],
-      "INC - Rental - Deposit": [
-        "deposit",
-        "security deposit",
-        "rental deposit"
-      ],
-      "INC - Sales - Products": [
-        "sales",
-        "product sales",
-        "merchandise"
-      ],
-      "INC - Sales - Services": [
-        "service",
-        "services",
-        "service fee"
-      ],
-      "INC - Other Income": [
-        "income",
-        "other income",
-        "miscellaneous income"
+      "EXP - Construction - Wall": [
+        "wall",
+        "walls",
+        "brick",
+        "cement",
+        "mortar",
+        "plaster",
+        "drywall",
+        "partition",
+        "wall construction",
+        "masonry"
       ]
     },
     "typeOfPayment": {
-      "Cash": [
-        "cash",
-        "paid cash",
-        "cash payment",
-        "in cash"
+      "Credit card": [
+        "credit card",
+        "credit",
+        "visa",
+        "mastercard",
+        "amex",
+        "american express",
+        "plastic"
       ],
       "Bank transfer": [
-        "bank transfer",
         "transfer",
-        "wire transfer",
-        "bank payment",
-        "online transfer"
-      ],
-      "Card": [
-        "card",
-        "credit card",
-        "debit card",
-        "card payment"
-      ],
-      "Check": [
-        "check",
-        "cheque",
-        "bank check"
-      ],
-      "Mobile payment": [
-        "mobile payment",
-        "mobile",
-        "qr code",
+        "bank transfer",
+        "wire",
+        "online transfer",
+        "internet banking",
+        "mobile banking",
         "promptpay",
-        "alipay",
-        "wechat pay"
-      ]
-    },
-    "property": {
-      "Sia Moon": [
-        "sia moon",
-        "siamoon",
-        "sia",
-        "moon"
+        "swift"
       ],
-      "Alesia House": [
-        "alesia",
-        "alesia house",
-        "alesia's house"
+      "Cash": [
+        "cash",
+        "money",
+        "bills",
+        "coins",
+        "physical money",
+        "hand to hand"
       ]
     }
   }

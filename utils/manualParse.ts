@@ -251,7 +251,7 @@ export function parseManualCommand(input: string): ParseResult {
     confidence += 0.05;
     reasons.push(`Detected property: ${property}`);
   } else {
-    data.property = 'Sia Moon - Land - General'; // Default
+    data.property = 'Sia Moon - Land - General'; // Updated default to match live data
   }
   
   // 5. Extract payment type
@@ -271,6 +271,7 @@ export function parseManualCommand(input: string): ParseResult {
     confidence += 0.3;
     reasons.push(`Detected operation: ${operation}`);
   } else {
+    // Use "Uncategorized" to force user selection on review page
     data.typeOfOperation = 'Uncategorized';
   }
   
