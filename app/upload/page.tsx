@@ -119,9 +119,9 @@ export default function UploadPage() {
 
         const extractData = await extractResponse.json();
 
-        if (extractData.data) {
-          // Merge AI results with parsed data
-          dataToPass = { ...parseResult.data, ...extractData.data };
+        if (extractData && !extractData.error) {
+          // Merge AI results with parsed data, preserving AI confidence scores
+          dataToPass = { ...parseResult.data, ...extractData };
         }
       }
 

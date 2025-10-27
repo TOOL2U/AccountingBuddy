@@ -19,6 +19,7 @@ export default function ReviewPage({ params }: any) {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [isSending, setIsSending] = useState(false);
+  const [categoryError, setCategoryError] = useState(false);
 
   const handleCloseToast = () => setShowToast(false);
 
@@ -93,9 +94,16 @@ export default function ReviewPage({ params }: any) {
   }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    // Clear category error when user selects a valid category
+    if (name === 'typeOfOperation' && value && !['', 'Uncategorized', 'REVENUES', 'Fixed Costs', 'EXPENSES', 'Property'].includes(value)) {
+      setCategoryError(false);
+    }
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
@@ -108,17 +116,28 @@ export default function ReviewPage({ params }: any) {
     // Validation: Check if category (typeOfOperation) is selected and not a header
     const headerCategories = ['', 'Uncategorized', 'REVENUES', 'Fixed Costs', 'EXPENSES', 'Property'];
     if (!formData.typeOfOperation || headerCategories.includes(formData.typeOfOperation)) {
-      setToastMessage('❌ Please select a specific category (not a header) before submitting');
+      setCategoryError(true);
+      setToastMessage('🚨 ERROR: Please select a specific category from "Type of Operation" dropdown before submitting to Google Sheets');
       setToastType('error');
       setShowToast(true);
       
-      // Hide error toast after 5 seconds
+      // Scroll to category field
+      const categoryField = document.getElementById('typeOfOperation');
+      if (categoryField) {
+        categoryField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        categoryField.focus();
+      }
+      
+      // Hide error toast after 8 seconds
       setTimeout(() => {
         setShowToast(false);
-      }, 5000);
+      }, 8000);
       
       return;
     }
+    
+    // Clear any previous category error
+    setCategoryError(false);
 
     // Additional validation: Check required fields
     if (!formData.day || !formData.month || !formData.year) {
@@ -273,7 +292,7 @@ export default function ReviewPage({ params }: any) {
               {confidence.property < 0.8 && (
                 <Badge variant="warning">⚠️ Needs review</Badge>
               )}
-              {confidence.property >= 0.8 && confidence.property < 1.0 && (
+              {confidence.property >= 0.8 && (
                 <Badge variant="info">AI: {(confidence.property * 100).toFixed(0)}%</Badge>
               )}
             </div>
@@ -298,13 +317,16 @@ export default function ReviewPage({ params }: any) {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <label htmlFor="typeOfOperation" className="text-sm font-medium text-text-primary">
-                Type of Operation
+                Type of Operation {categoryError && <span className="text-red-500">*</span>}
               </label>
               {confidence.typeOfOperation < 0.8 && (
                 <Badge variant="warning">⚠️ Needs review</Badge>
               )}
-              {confidence.typeOfOperation >= 0.8 && confidence.typeOfOperation < 1.0 && (
+              {confidence.typeOfOperation >= 0.8 && (
                 <Badge variant="info">AI: {(confidence.typeOfOperation * 100).toFixed(0)}%</Badge>
+              )}
+              {categoryError && (
+                <Badge variant="danger">❌ Required</Badge>
               )}
             </div>
             <select
@@ -312,7 +334,11 @@ export default function ReviewPage({ params }: any) {
               name="typeOfOperation"
               value={formData.typeOfOperation}
               onChange={handleChange}
-              className="w-full px-4 py-2.5 bg-surface-1 border border-border-light rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/60 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+              className={`w-full px-4 py-2.5 bg-surface-1 border rounded-xl text-text-primary focus:outline-none focus:ring-2 transition-all duration-200 appearance-none cursor-pointer ${
+                categoryError 
+                  ? 'border-red-500 focus:ring-red-500/60 focus:border-red-500 bg-red-50' 
+                  : 'border-border-light focus:ring-brand-primary/60 focus:border-transparent'
+              }`}
               required
             >
               <option value="">Select operation type</option>
@@ -322,6 +348,11 @@ export default function ReviewPage({ params }: any) {
                 </option>
               ))}
             </select>
+            {categoryError && (
+              <p className="mt-2 text-sm text-red-600 font-medium">
+                ⚠️ Please select a specific category from the dropdown (not a header like &quot;EXPENSES&quot;)
+              </p>
+            )}
           </div>
 
           {/* Type of Payment Field */}
@@ -333,7 +364,7 @@ export default function ReviewPage({ params }: any) {
               {confidence.typeOfPayment < 0.8 && (
                 <Badge variant="warning">⚠️ Needs review</Badge>
               )}
-              {confidence.typeOfPayment >= 0.8 && confidence.typeOfPayment < 1.0 && (
+              {confidence.typeOfPayment >= 0.8 && (
                 <Badge variant="info">AI: {(confidence.typeOfPayment * 100).toFixed(0)}%</Badge>
               )}
             </div>
