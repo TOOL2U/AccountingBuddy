@@ -14,10 +14,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="bg-surface-0 text-text-primary">
         <Navigation />
-        <main className="min-h-screen bg-gray-50">
-          {children}
+        <main className="min-h-screen">
+          <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8">
+            {children}
+          </div>
         </main>
       </body>
     </html>

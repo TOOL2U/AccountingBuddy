@@ -1,25 +1,29 @@
 {
   "property": [
-    "Sia Moon",
+    "Sia Moon - Land - General",
     "Alesia House",
     "Lanna House",
     "Parents House"
   ],
   "typeOfOperation": [
     "REVENUES",
-    "Commision",
-    "Sales",
-    "Services",
-    "COGS",
+    "Revenue - Commision",
+    "Revenue - Sales",
+    "Revenue - Services",
+    "Fixed Costs",
+    "EXP - Utilities - Gas",
+    "EXP - Utilities - Water",
+    "EXP - Utilities  - Electricity",
     "EXPENSES",
     "EXP - Administration & General - License & Certificates",
     "EXP - Construction - Structure",
     "EXP - Construction - Overheads/General/Unclassified",
+    "EXP - HR - Employees Salaries",
     "EXP - Administration & General - Legal",
     "EXP - Administration & General - Professional fees",
     "EXP - Administration & General - Office supplies",
     "EXP - Administration & General  - Subscription, Software & Membership",
-    "EXP - Construction - Electric",
+    "EXP - Construction - Electric Supplies",
     "EXP - Appliances & Electronics",
     "EXP - Windows, Doors, Locks & Hardware",
     "EXP - Decor",
@@ -29,12 +33,7 @@
     "EXP - Repairs & Maintenance - Electrical & Mechanical",
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
-    "EXP - Construction - Wall",
-    "Property",
-    "Sia Moon",
-    "Alesia House",
-    "Lanna House",
-    "Parents House"
+    "EXP - Construction - Wall"
   ],
   "typeOfPayment": [
     "Credit card",
@@ -42,10 +41,10 @@
     "Cash"
   ],
   "validationRanges": {
-    "property": "Data!$A$37:$A$40",
-    "typeOfOperation": "Data!$A$3:$A$65",
-    "typeOfPayment": "Data!$A$70:$A$72"
+    "property": "Data!$A$38:$A$41",
+    "typeOfOperation": "Data!$A$3:$A$33",
+    "typeOfPayment": "Data!$A$71:$A$73"
   },
-  "fetchedAt": "2025-10-25T05:19:10.774Z",
+  "fetchedAt": "2025-10-27T01:23:49.325Z",
   "source": "live_validation_rules"
 }
