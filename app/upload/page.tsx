@@ -47,6 +47,11 @@ export default function UploadPage() {
   // Filter categories based on search
   const filteredCategories = categorySearch.trim()
     ? options.typeOfOperation.filter(category => {
+        // Exclude header categories that shouldn't be selectable
+        const headerCategories = ['Fixed Costs', 'EXPENSES'];
+        if (headerCategories.includes(category)) {
+          return false;
+        }
         // Filter by search term
         return category.toLowerCase().includes(categorySearch.toLowerCase());
       }).slice(0, 8) // Limit to 8 results for better UX
@@ -583,7 +588,7 @@ export default function UploadPage() {
                     exit={{ opacity: 0, y: -10 }}
                     className="absolute top-full left-0 right-0 mt-1 bg-surface-1 border border-border-light rounded-xl shadow-elev-2 p-4 text-center z-50"
                   >
-                    <p className="text-sm text-text-tertiary">No categories found for "{categorySearch}"</p>
+                    <p className="text-sm text-text-tertiary">No categories found for &quot;{categorySearch}&quot;</p>
                   </motion.div>
                 )}
               </AnimatePresence>

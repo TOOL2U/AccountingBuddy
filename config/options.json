@@ -3,7 +3,9 @@
     "Sia Moon - Land - General",
     "Alesia House",
     "Lanna House",
-    "Parents House"
+    "Parents House",
+    "Shaun Ducker",
+    "Maria Ren"
   ],
   "typeOfOperation": [
     "Revenue - Commision",
@@ -30,11 +32,7 @@
     "EXP - Repairs & Maintenance - Electrical & Mechanical",
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
-    "EXP - Construction - Wall",
-    "Sia Moon - Land - General",
-    "Alesia House",
-    "Lanna House",
-    "Parents House"
+    "EXP - Construction - Wall"
   ],
   "typeOfPayment": [
     "Credit card",
@@ -76,6 +74,22 @@
         "mother",
         "father",
         "family"
+      ],
+      "Shaun Ducker": [
+        "shaun",
+        "ducker",
+        "shaun ducker",
+        "sd",
+        "owner",
+        "landlord"
+      ],
+      "Maria Ren": [
+        "maria",
+        "ren",
+        "maria ren",
+        "mr",
+        "co-owner",
+        "partner"
       ]
     },
     "typeOfOperation": {

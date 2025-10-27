@@ -344,7 +344,9 @@ export default function ReviewPage({ params }: any) {
               required
             >
               <option value="">Select operation type</option>
-              {options.typeOfOperation.map((op) => (
+              {options.typeOfOperation
+                .filter(op => !['Fixed Costs', 'EXPENSES'].includes(op))
+                .map((op) => (
                 <option key={op} value={op}>
                   {op}
                 </option>
