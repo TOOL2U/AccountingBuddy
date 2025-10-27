@@ -63,6 +63,19 @@ export async function POST(request: NextRequest) {
 
     console.log('[SHEETS] Payload validated successfully');
 
+    // Server-side validation: Check for header categories before normalization
+    const headerCategories = ['', 'Uncategorized', 'REVENUES', 'Fixed Costs', 'EXPENSES', 'Property'];
+    if (!validation.data.typeOfOperation || headerCategories.includes(validation.data.typeOfOperation)) {
+      console.error('[✖] Invalid category detected:', validation.data.typeOfOperation);
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Invalid category: "${validation.data.typeOfOperation}". Please select a specific category, not a header.`
+        },
+        { status: 400 }
+      );
+    }
+
     // Normalize dropdown fields to ensure they match canonical options
     const normalizedData = {
       ...validation.data,

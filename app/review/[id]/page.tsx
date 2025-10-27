@@ -115,7 +115,9 @@ export default function ReviewPage({ params }: any) {
 
     // Validation: Check if category (typeOfOperation) is selected and not a header
     const headerCategories = ['', 'Uncategorized', 'REVENUES', 'Fixed Costs', 'EXPENSES', 'Property'];
+    console.log('[VALIDATION] Checking category:', formData.typeOfOperation);
     if (!formData.typeOfOperation || headerCategories.includes(formData.typeOfOperation)) {
+      console.error('[VALIDATION] Invalid category detected:', formData.typeOfOperation);
       setCategoryError(true);
       setToastMessage('🚨 ERROR: Please select a specific category from "Type of Operation" dropdown before submitting to Google Sheets');
       setToastType('error');
