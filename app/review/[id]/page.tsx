@@ -105,9 +105,10 @@ export default function ReviewPage({ params }: any) {
     // Prevent double submission
     if (isSending) return;
 
-    // Validation: Check if category (typeOfOperation) is selected
-    if (!formData.typeOfOperation || formData.typeOfOperation === '' || formData.typeOfOperation === 'Uncategorized') {
-      setToastMessage('❌ Please select a category (Type of Operation) before submitting');
+    // Validation: Check if category (typeOfOperation) is selected and not a header
+    const headerCategories = ['', 'Uncategorized', 'REVENUES', 'Fixed Costs', 'EXPENSES', 'Property'];
+    if (!formData.typeOfOperation || headerCategories.includes(formData.typeOfOperation)) {
+      setToastMessage('❌ Please select a specific category (not a header) before submitting');
       setToastType('error');
       setShowToast(true);
       

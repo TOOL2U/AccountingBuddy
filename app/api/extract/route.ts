@@ -205,10 +205,16 @@ Output fields:
 CRITICAL RULES:
 1. Date: Split into day, month (3-letter), year. If no date, use today: day="${currentDate.getDate()}", month="${currentDate.toLocaleString('en', { month: 'short' })}", year="${currentDate.getFullYear()}"
 2. Property: Must be exact match from dropdown list. Default to "Sia Moon - Land - General"
-3. Operation: Must be exact match from dropdown list. Use smart categorization above
+3. Operation: Must be exact match from dropdown list. Use smart categorization above. NEVER select headers: "REVENUES", "Fixed Costs", "EXPENSES", "Property"
 4. Payment: Must be exact match from dropdown list
 5. Amount: Remove ฿, commas, "baht". For expenses → debit field. For income → credit field
 6. Detail: Keep concise but descriptive, capitalize first letter
+
+FORBIDDEN CATEGORIES (these are headers, not selectable options):
+- "REVENUES" (use specific revenue type like "Revenue - Sales")
+- "Fixed Costs" (use specific cost type)
+- "EXPENSES" (use specific expense type like "EXP - Construction - Wall")
+- "Property" (use actual property name)
 
 Return ONLY valid JSON, no additional text.`;
 
