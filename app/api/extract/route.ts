@@ -179,7 +179,8 @@ SMART CATEGORIZATION RULES:
    - "wall", "materials", "construction" → "EXP - Construction - Wall"
    - "aircon", "air purifier", "electronics" → "EXP - Appliances & Electronics"
    - "door", "window", "lock", "hardware" → "EXP - Windows, Doors, Locks & Hardware"
-   - "decor", "decoration", "pillow", "elephant" → "EXP - Decor"
+   - "furniture", "decorative", "decor", "decoration", "art", "vase", "pillow" → "EXP - Repairs & Maintenance  - Furniture & Decorative Items"
+   - "painting", "paint", "painter", "decorative painting" → "EXP - Repairs & Maintenance - Painting & Decoration"
    - "salary", "salaries", "staff" → "EXP - HR - Employees Salaries"
 
 3. Payment Methods:

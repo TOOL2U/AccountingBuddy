@@ -26,14 +26,19 @@
     "EXP - Construction - Electric Supplies",
     "EXP - Appliances & Electronics",
     "EXP - Windows, Doors, Locks & Hardware",
-    "EXP - Decor",
+    "EXP - Repairs & Maintenance  - Furniture & Decorative Items",
     "EXP - Repairs & Maintenance  - Waste removal",
     "EXP - Repairs & Maintenance - Tools & Equipment",
-    "EXP - Repairs & Maintenance - Painting & deco",
+    "EXP - Repairs & Maintenance - Painting & Decoration",
     "EXP - Repairs & Maintenance - Electrical & Mechanical",
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
-    "EXP - Construction - Wall"
+    "EXP - Construction - Wall",
+    "Property",
+    "Sia Moon - Land - General",
+    "Alesia House",
+    "Lanna House",
+    "Parents House"
   ],
   "typeOfPayment": [
     "Credit card",
@@ -42,9 +47,9 @@
   ],
   "validationRanges": {
     "property": "Data!$A$38:$A$41",
-    "typeOfOperation": "Data!$A$3:$A$33",
+    "typeOfOperation": "Data!$A$3:$A$66",
     "typeOfPayment": "Data!$A$71:$A$73"
   },
-  "fetchedAt": "2025-10-27T01:23:49.325Z",
+  "fetchedAt": "2025-10-27T14:22:56.841Z",
   "source": "live_validation_rules"
 }

@@ -7,12 +7,12 @@
   ],
   "typeOfOperation": [
     "REVENUES",
-    "Revenue - Commision", 
+    "Revenue - Commision",
     "Revenue - Sales",
     "Revenue - Services",
     "Fixed Costs",
     "EXP - Utilities - Gas",
-    "EXP - Utilities - Water", 
+    "EXP - Utilities - Water",
     "EXP - Utilities  - Electricity",
     "EXPENSES",
     "EXP - Administration & General - License & Certificates",
@@ -26,18 +26,23 @@
     "EXP - Construction - Electric Supplies",
     "EXP - Appliances & Electronics",
     "EXP - Windows, Doors, Locks & Hardware",
-    "EXP - Decor",
+    "EXP - Repairs & Maintenance  - Furniture & Decorative Items",
     "EXP - Repairs & Maintenance  - Waste removal",
     "EXP - Repairs & Maintenance - Tools & Equipment",
-    "EXP - Repairs & Maintenance - Painting & deco",
+    "EXP - Repairs & Maintenance - Painting & Decoration",
     "EXP - Repairs & Maintenance - Electrical & Mechanical",
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
-    "EXP - Construction - Wall"
+    "EXP - Construction - Wall",
+    "Property",
+    "Sia Moon - Land - General",
+    "Alesia House",
+    "Lanna House",
+    "Parents House"
   ],
   "typeOfPayment": [
     "Credit card",
-    "Bank transfer", 
+    "Bank transfer",
     "Cash"
   ],
   "keywords": {
@@ -279,19 +284,28 @@
         "security",
         "gate"
       ],
-      "EXP - Decor": [
+      "EXP - Repairs & Maintenance  - Furniture & Decorative Items": [
+        "furniture",
+        "decorative",
         "decor",
         "decoration",
-        "decorative",
+        "decorative items",
         "art",
-        "painting",
         "vase",
-        "furniture",
         "pillow",
         "curtain",
         "ornament",
         "design",
-        "aesthetic"
+        "aesthetic",
+        "furniture repair",
+        "sofa",
+        "chair",
+        "table",
+        "bed",
+        "cabinet",
+        "shelf",
+        "lamp",
+        "mirror"
       ],
       "EXP - Repairs & Maintenance  - Waste removal": [
         "waste",
@@ -315,15 +329,24 @@
         "machinery",
         "repair tools"
       ],
-      "EXP - Repairs & Maintenance - Painting & deco": [
-        "paint",
+      "EXP - Repairs & Maintenance - Painting & Decoration": [
         "painting",
+        "paint",
         "painter",
         "brush",
         "roller",
         "color",
         "wall painting",
-        "decoration paint"
+        "decoration paint",
+        "paint job",
+        "painting service",
+        "paint materials",
+        "decorative painting",
+        "interior painting",
+        "exterior painting",
+        "spray paint",
+        "primer",
+        "paint thinner"
       ],
       "EXP - Repairs & Maintenance - Electrical & Mechanical": [
         "electrical repair",
