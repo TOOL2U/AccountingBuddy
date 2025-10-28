@@ -622,7 +622,7 @@ export default function UploadPage() {
             <div className="flex items-center gap-2 text-xs text-text-tertiary">
               <div className="w-1.5 h-1.5 bg-brand-primary rounded-full flex-shrink-0"></div>
               <span>
-                Can&apos;t find the right category? Use <span className="text-brand-primary font-medium">&quot;EXP - Other Expenses&quot;</span> as a catch-all
+                Can&apos;t find the right category? Use <span className="text-brand-primary font-medium">&quot;EXP - Other Expenses&quot;</span>
               </span>
             </div>
           </motion.div>
@@ -632,12 +632,6 @@ export default function UploadPage() {
             <div className="flex items-start gap-2 text-xs text-text-tertiary">
               <Sparkles className="w-3 h-3 text-brand-primary mt-0.5 flex-shrink-0" />
               
-            </div>
-            <div className="flex items-start gap-2 text-xs text-text-tertiary hidden sm:flex">
-              <ArrowRight className="w-3 h-3 text-status-info mt-0.5 flex-shrink-0" />
-              <span>
-                <strong className="text-text-secondary">Enter</strong> to submit • <strong className="text-text-secondary">↑/↓</strong> for history
-              </span>
             </div>
           </div>
 
@@ -649,12 +643,12 @@ export default function UploadPage() {
             <Button
               onClick={handleManualParse}
               disabled={isManualProcessing || !manualCommand.trim()}
-              isLoading={isManualProcessing}
+              isLoading={false}
               size="md"
-              className="w-full mt-4 bg-gradient-to-r from-brand-primary to-status-info hover:from-brand-primary/90 hover:to-status-info/90 shadow-lg shadow-brand-primary/25"
+              className="w-full mt-4 bg-gradient-to-r from-brand-primary to-status-info hover:from-brand-primary/90 hover:to-status-info/90 shadow-lg shadow-brand-primary/25 text-white"
             >
               {isManualProcessing ? (
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 text-white">
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -664,9 +658,33 @@ export default function UploadPage() {
                   Processing...
                 </span>
               ) : (
-                <span className="flex items-center gap-2 border border-brand-primary/30 rounded-full px-3 py-1.5">
-                  Parse & Review
-                  <ArrowRight className="w-4 h-4" />
+                <span className="flex items-center gap-2">
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.05, 1],
+                      rotate: [0, 1, -1, 0]
+                    }}
+                    transition={{ 
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                  </motion.div>
+                  <span className="font-semibold">
+                    Parse & Review
+                  </span>
+                  <motion.div
+                    animate={{ x: [0, 3, 0] }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.div>
                 </span>
               )}
             </Button>
