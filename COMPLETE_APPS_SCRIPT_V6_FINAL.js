@@ -1,6 +1,6 @@
 /**
  * Google Apps Script - Accounting Buddy Webhook + Dynamic P&L + Inbox Endpoint
- * Version 6: Added Inbox Data Retrieval and Delete Functionality
+ * Version 6.1: Added Property/Person Expense Tracking + Inbox Data Retrieval
  * 
  * DEPLOYMENT INSTRUCTIONS:
  * 1. Open your existing Apps Script project (script.google.com)
@@ -11,9 +11,16 @@
  * 6. Click "Deploy"
  * 7. The URL stays the same - no need to update environment variables!
  * 
- * NEW FEATURES IN V6:
+ * NEW FEATURES IN V6.1:
+ * ✨ Property/Person expense tracking in P&L data
+ * ✨ Enhanced fuzzy matching for Property/Person named ranges
+ * ✨ Supports: Month_Property_Person_Expense, Year_Property_Person_Expense
+ * ✨ Backward compatible with all existing functionality
+ * 
+ * ALL FEATURES:
  * ✨ Inbox endpoint: { action: "getInbox", secret: "..." }
  * ✨ Delete endpoint: { action: "deleteEntry", secret: "...", rowNumber: 10 }
+ * ✨ P&L with Property/Person tracking: { action: "getPnL", secret: "..." }
  * ✨ Real-time sync with Google Sheets
  * 
  * ALL ENDPOINTS:
@@ -207,6 +214,8 @@ function getPnLDataFromRanges_() {
     yearRevenue: ['Year_Total_Revenue', 'YearRevenue', 'Year_Revenue', 'Yearly_Revenue', 'year_total_revenue', 'yearrevenue', 'YTD_Revenue'],
     monthOverheads: ['Month_Total_Overheads', 'MonthOverheads', 'Month_Overheads', 'Monthly_Overheads', 'month_total_overheads', 'monthoverheads', 'Month_Expenses', 'MonthExpenses', 'Monthly_Expenses'],
     yearOverheads: ['Year_Total_Overheads', 'YearOverheads', 'Year_Overheads', 'Yearly_Overheads', 'year_total_overheads', 'yearoverheads', 'Year_Expenses', 'YearExpenses', 'Yearly_Expenses', 'YTD_Expenses'],
+    monthPropertyPerson: ['Month_Property_Person_Expense', 'MonthPropertyPerson', 'Month_Property_Person', 'Monthly_Property_Person', 'month_property_person_expense', 'monthpropertyperson', 'Month_Property_Expense', 'MonthPropertyExpense'],
+    yearPropertyPerson: ['Year_Property_Person_Expense', 'YearPropertyPerson', 'Year_Property_Person', 'Yearly_Property_Person', 'year_property_person_expense', 'yearpropertyperson', 'Year_Property_Expense', 'YearPropertyExpense', 'YTD_Property_Person'],
     monthGOP: ['Month_GOP', 'MonthGOP', 'Month_Profit', 'Monthly_Profit', 'month_gop', 'monthgop', 'Month_Gross_Operating_Profit', 'MonthGrossOperatingProfit'],
     yearGOP: ['Year_GOP', 'YearGOP', 'Year_Profit', 'Yearly_Profit', 'year_gop', 'yeargop', 'Year_Gross_Operating_Profit', 'YearGrossOperatingProfit', 'YTD_Profit'],
     monthEBITDA: ['Month_EBITDA_Margin', 'MonthEBITDA', 'Month_EBITDA', 'Monthly_EBITDA', 'month_ebitda_margin', 'monthebitda', 'MonthEBITDAMargin'],
@@ -218,6 +227,8 @@ function getPnLDataFromRanges_() {
   const yearRevenueMatch = findNamedRangeValue_(rangeMap, patterns.yearRevenue, 'Year Revenue');
   const monthOverheadsMatch = findNamedRangeValue_(rangeMap, patterns.monthOverheads, 'Month Overheads');
   const yearOverheadsMatch = findNamedRangeValue_(rangeMap, patterns.yearOverheads, 'Year Overheads');
+  const monthPropertyPersonMatch = findNamedRangeValue_(rangeMap, patterns.monthPropertyPerson, 'Month Property/Person');
+  const yearPropertyPersonMatch = findNamedRangeValue_(rangeMap, patterns.yearPropertyPerson, 'Year Property/Person');
   const monthGOPMatch = findNamedRangeValue_(rangeMap, patterns.monthGOP, 'Month GOP');
   const yearGOPMatch = findNamedRangeValue_(rangeMap, patterns.yearGOP, 'Year GOP');
   const monthEBITDAMatch = findNamedRangeValue_(rangeMap, patterns.monthEBITDA, 'Month EBITDA');
@@ -232,6 +243,8 @@ function getPnLDataFromRanges_() {
   const yearRevenue = yearRevenueMatch.value;
   const monthOverheads = monthOverheadsMatch.value;
   const yearOverheads = yearOverheadsMatch.value;
+  const monthPropertyPerson = monthPropertyPersonMatch.value;
+  const yearPropertyPerson = yearPropertyPersonMatch.value;
   const monthGOP = monthGOPMatch.value;
   const yearGOP = yearGOPMatch.value;
   let monthEBITDA = monthEBITDAMatch.value;
@@ -242,6 +255,8 @@ function getPnLDataFromRanges_() {
   matchInfo.yearRevenue = { name: yearRevenueMatch.matchedName, type: yearRevenueMatch.matchType };
   matchInfo.monthOverheads = { name: monthOverheadsMatch.matchedName, type: monthOverheadsMatch.matchType };
   matchInfo.yearOverheads = { name: yearOverheadsMatch.matchedName, type: yearOverheadsMatch.matchType };
+  matchInfo.monthPropertyPerson = { name: monthPropertyPersonMatch.matchedName, type: monthPropertyPersonMatch.matchType };
+  matchInfo.yearPropertyPerson = { name: yearPropertyPersonMatch.matchedName, type: yearPropertyPersonMatch.matchType };
   matchInfo.monthGOP = { name: monthGOPMatch.matchedName, type: monthGOPMatch.matchType };
   matchInfo.yearGOP = { name: yearGOPMatch.matchedName, type: yearGOPMatch.matchType };
   
@@ -250,6 +265,8 @@ function getPnLDataFromRanges_() {
   if (yearRevenue === null) warnings.push('Missing: Year Revenue (tried: ' + patterns.yearRevenue.join(', ') + ')');
   if (monthOverheads === null) warnings.push('Missing: Month Overheads (tried: ' + patterns.monthOverheads.join(', ') + ')');
   if (yearOverheads === null) warnings.push('Missing: Year Overheads (tried: ' + patterns.yearOverheads.join(', ') + ')');
+  if (monthPropertyPerson === null) warnings.push('Missing: Month Property/Person (tried: ' + patterns.monthPropertyPerson.join(', ') + ')');
+  if (yearPropertyPerson === null) warnings.push('Missing: Year Property/Person (tried: ' + patterns.yearPropertyPerson.join(', ') + ')');
   if (monthGOP === null) warnings.push('Missing: Month GOP (tried: ' + patterns.monthGOP.join(', ') + ')');
   if (yearGOP === null) warnings.push('Missing: Year GOP (tried: ' + patterns.yearGOP.join(', ') + ')');
 
@@ -291,12 +308,14 @@ function getPnLDataFromRanges_() {
     month: {
       revenue: monthRevenue || 0,
       overheads: monthOverheads || 0,
+      propertyPersonExpense: monthPropertyPerson || 0,
       gop: monthGOP || 0,
       ebitdaMargin: monthEBITDA || 0
     },
     year: {
       revenue: yearRevenue || 0,
       overheads: yearOverheads || 0,
+      propertyPersonExpense: yearPropertyPerson || 0,
       gop: yearGOP || 0,
       ebitdaMargin: yearEBITDA || 0
     },
@@ -329,17 +348,18 @@ function formatDate_(day, month, year) {
 // doGet - Health check endpoint
 // ============================================================================
 function doGet(e) {
-  return ContentService
+      return ContentService
     .createTextOutput(JSON.stringify({
       status: 'ok',
       message: 'Accounting Buddy webhook + Dynamic P&L + Inbox endpoint is running',
-      version: '6.0 - With Inbox Data Retrieval',
+      version: '6.1 - With Property/Person Expense Tracking + Inbox Data Retrieval',
       timestamp: new Date().toISOString(),
       endpoints: {
         webhook: 'POST with accounting data',
         pnl: 'POST with { action: "getPnL", secret: "..." }',
         inbox: 'POST with { action: "getInbox", secret: "..." }',
         delete: 'POST with { action: "deleteEntry", secret: "...", rowNumber: 10 }',
+        propertyPerson: 'POST with { action: "getPropertyPersonDetails", secret: "...", period: "month|year" }',
         discover: 'POST with { action: "list_named_ranges", secret: "..." }'
       },
       features: [
@@ -347,6 +367,7 @@ function doGet(e) {
         'Fuzzy matching (handles naming variations)',
         '60-second caching with CacheService',
         'Computed EBITDA fallbacks',
+        'Property/Person expense tracking',
         'Inbox data retrieval',
         'Delete entry functionality',
         'Graceful error handling'
@@ -399,6 +420,11 @@ function doPost(e) {
     } else if (payload.action === 'deleteEntry') {
       Logger.log('→ Routing to Delete endpoint');
       return handleDeleteEntry(payload.rowNumber);
+    } else if (payload.action === 'getPropertyPersonDetails') {
+      Logger.log('→ Routing to Property/Person Details endpoint');
+      Logger.log('Full payload: ' + JSON.stringify(payload));
+      Logger.log('Period from payload: ' + payload.period);
+      return handleGetPropertyPersonDetails(payload.period);
     } else if (payload.action === 'list_named_ranges') {
       Logger.log('→ Routing to discovery endpoint');
       return handleDiscoverRanges();
@@ -712,6 +738,107 @@ function handleDiscoverRanges() {
 }
 
 // ============================================================================
+// handleGetPropertyPersonDetails - Get individual property/person expenses
+// ============================================================================
+function handleGetPropertyPersonDetails(period) {
+  try {
+    Logger.log('=== Property/Person Details Request ===');
+    Logger.log('Period: ' + period);
+
+    if (!period || !['month', 'year'].includes(period)) {
+      return createErrorResponse('Invalid period. Must be "month" or "year".');
+    }
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName("P&L ");
+    
+    if (!sheet) {
+      return createErrorResponse('P&L sheet not found');
+    }
+
+    // Property/Person names are in rows 14-19, column A
+    // Property/Person values are in rows 14-19, column N (month) or Q (year)
+    const nameRange = sheet.getRange("A14:A19");
+    const nameValues = nameRange.getValues();
+    
+    // Determine which column to use based on period
+    let valueColumn;
+    if (period === 'month') {
+      // Find current month column dynamically
+      const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEPT", "OCT", "NOV", "DEC"];
+      const currentMonth = months[new Date().getMonth()];
+      const headerRow = sheet.getRange("A4:Z4").getValues()[0];
+      
+      let monthColumnIndex = null;
+      for (let i = 0; i < headerRow.length; i++) {
+        if (headerRow[i] && headerRow[i].toString().toUpperCase().trim() === currentMonth) {
+          monthColumnIndex = i + 1; // Convert to 1-based index
+          break;
+        }
+      }
+      
+      if (!monthColumnIndex) {
+        return createErrorResponse('Could not find current month column');
+      }
+      
+      valueColumn = String.fromCharCode(64 + monthColumnIndex); // Convert to letter
+      Logger.log('Using month column: ' + valueColumn + ' for ' + currentMonth);
+    } else {
+      valueColumn = 'Q'; // Year total column
+      Logger.log('Using year column: Q');
+    }
+    
+    const valueRange = sheet.getRange(valueColumn + "14:" + valueColumn + "19");
+    const valueValues = valueRange.getValues();
+    
+    // Build the data array
+    const data = [];
+    let totalExpense = 0;
+    
+    for (let i = 0; i < nameValues.length; i++) {
+      const name = nameValues[i][0];
+      const expense = parseFloat(valueValues[i][0]) || 0;
+      
+      if (name && name.toString().trim() !== '') {
+        data.push({
+          name: name.toString().trim(),
+          expense: expense
+        });
+        totalExpense += expense;
+      }
+    }
+    
+    // Calculate percentages
+    data.forEach(function(item) {
+      item.percentage = totalExpense > 0 ? (item.expense / totalExpense) * 100 : 0;
+    });
+    
+    // Sort by expense amount (descending)
+    data.sort(function(a, b) {
+      return b.expense - a.expense;
+    });
+    
+    Logger.log('✓ Found ' + data.length + ' property/person items, total: ' + totalExpense);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        ok: true,
+        data: data,
+        period: period,
+        totalExpense: totalExpense,
+        column: valueColumn,
+        count: data.length,
+        timestamp: new Date().toISOString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    Logger.log('ERROR in handleGetPropertyPersonDetails: ' + error.toString());
+    return createErrorResponse('Property/Person details error: ' + error.toString());
+  }
+}
+
+// ============================================================================
 // Helper function to create error responses
 // ============================================================================
 function createErrorResponse(message) {
@@ -818,6 +945,27 @@ function testDeleteEndpoint() {
 }
 
 /**
+ * Test property/person details endpoint functionality
+ */
+function testPropertyPersonEndpoint() {
+  const testPayload = {
+    action: 'getPropertyPersonDetails',
+    period: 'month',
+    secret: EXPECTED_SECRET
+  };
+
+  const mockEvent = {
+    postData: {
+      contents: JSON.stringify(testPayload)
+    }
+  };
+
+  const response = doPost(mockEvent);
+  Logger.log('=== Property/Person Test Response ===');
+  Logger.log(response.getContent());
+}
+
+/**
  * Test named range discovery
  */
 function testDiscovery() {
@@ -844,5 +992,228 @@ function clearAllCaches() {
   const cache = CacheService.getScriptCache();
   cache.removeAll(['pnl_data', 'named_range_map']);
   Logger.log('✓ All caches cleared');
+}
+
+// ============================================================================
+// P&L Named Ranges Creation Functions
+// ============================================================================
+
+/**
+ * Create P&L Named Ranges with Dynamic Month Detection
+ * 
+ * This function creates all the named ranges needed for the P&L Dashboard
+ * based on the current structure of your "P&L " sheet with Property/Person section.
+ * 
+ * INSTRUCTIONS:
+ * 1. Run this function: createPnLNamedRanges()
+ * 2. Check the execution log to verify all ranges were created
+ * 3. Test with: testPnLEndpoint()
+ * 
+ * Updated: 2025-10-28 (With Property/Person section + Dynamic Month Detection)
+ * Sheet Structure:
+ * - Row 11: Total Revenue (Current Month Column = This Month, Q = Year Total)
+ * - Row 20: Total Property or Person Expense (Current Month Column = This Month, Q = Year Total)  
+ * - Row 46: Total Overhead Expense (Current Month Column = This Month, Q = Year Total)
+ * - Row 49: Gross Operating Profit (Current Month Column = This Month, Q = Year Total)
+ * - Row 50: EBITDA Margin (Current Month Column = This Month, Q = Year Total)
+ */
+function createPnLNamedRanges() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetName = "P&L "; // Note: Has trailing space
+  const sheet = ss.getSheetByName(sheetName);
+  
+  if (!sheet) {
+    Logger.log("❌ Sheet '" + sheetName + "' not found!");
+    Logger.log("Available sheets:");
+    ss.getSheets().forEach(function(s) {
+      Logger.log("  - " + s.getName());
+    });
+    return;
+  }
+  
+  Logger.log("✓ Found sheet: " + sheetName);
+  Logger.log("");
+  Logger.log("Creating named ranges for Property/Person P&L with dynamic month detection...");
+  Logger.log("");
+  
+  // Get current month
+  const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEPT", "OCT", "NOV", "DEC"];
+  const currentMonth = months[new Date().getMonth()];
+  Logger.log("📅 Current month: " + currentMonth);
+  
+  // Find the column for current month (row 4 has month headers)
+  const headerRow = sheet.getRange("A4:Z4").getValues()[0];
+  let monthColumn = null;
+  let monthColumnLetter = null;
+  
+  for (let i = 0; i < headerRow.length; i++) {
+    if (headerRow[i] && headerRow[i].toString().toUpperCase().trim() === currentMonth) {
+      monthColumn = i + 1; // Convert to 1-based index
+      monthColumnLetter = String.fromCharCode(64 + monthColumn);
+      Logger.log("✓ Found current month in column: " + monthColumnLetter);
+      break;
+    }
+  }
+  
+  if (!monthColumn) {
+    Logger.log("❌ Could not find current month column!");
+    Logger.log("Available headers: " + headerRow.filter(h => h).join(", "));
+    return;
+  }
+  
+  // Define all named ranges to create with dynamic month column
+  const ranges = [
+    // MONTH (Current Month - Dynamic Column)
+    {
+      name: "Month_Total_Revenue",
+      cell: monthColumnLetter + "11",
+      description: "This Month Total Revenue (" + currentMonth + ")"
+    },
+    {
+      name: "Month_Property_Person_Expense", 
+      cell: monthColumnLetter + "20",
+      description: "This Month Total Property or Person Expense (" + currentMonth + ")"
+    },
+    {
+      name: "Month_Total_Overheads",
+      cell: monthColumnLetter + "46",
+      description: "This Month Total Overhead Expense (" + currentMonth + ")"
+    },
+    {
+      name: "Month_GOP",
+      cell: monthColumnLetter + "49",
+      description: "This Month Gross Operating Profit (" + currentMonth + ")"
+    },
+    {
+      name: "Month_EBITDA_Margin",
+      cell: monthColumnLetter + "50",
+      description: "This Month EBITDA Margin (" + currentMonth + ")"
+    },
+    
+    // YEAR (Year Total - Column Q)
+    {
+      name: "Year_Total_Revenue",
+      cell: "Q11",
+      description: "Year Total Revenue"
+    },
+    {
+      name: "Year_Property_Person_Expense",
+      cell: "Q20", 
+      description: "Year Total Property or Person Expense"
+    },
+    {
+      name: "Year_Total_Overheads",
+      cell: "Q46",
+      description: "Year Total Overhead Expense"
+    },
+    {
+      name: "Year_GOP",
+      cell: "Q49",
+      description: "Year Gross Operating Profit"
+    },
+    {
+      name: "Year_EBITDA_Margin",
+      cell: "Q50",
+      description: "Year EBITDA Margin"
+    }
+  ];
+  
+  // Create each named range
+  var successCount = 0;
+  var errorCount = 0;
+  
+  ranges.forEach(function(rangeConfig) {
+    try {
+      // Get the cell value to display
+      var cellValue = sheet.getRange(rangeConfig.cell).getValue();
+      
+      // Create or update the named range
+      ss.setNamedRange(rangeConfig.name, sheet.getRange(rangeConfig.cell));
+      
+      Logger.log("✓ Created: " + rangeConfig.name + " → " + rangeConfig.cell + " (value: " + cellValue + ")");
+      successCount++;
+      
+    } catch (error) {
+      Logger.log("❌ Failed: " + rangeConfig.name + " - " + error.toString());
+      errorCount++;
+    }
+  });
+  
+  Logger.log("");
+  Logger.log("=== SUMMARY ===");
+  Logger.log("✅ Successfully created: " + successCount + " named ranges");
+  if (errorCount > 0) {
+    Logger.log("❌ Failed to create: " + errorCount + " named ranges");
+  }
+  Logger.log("");
+  Logger.log("🎉 Done! Your P&L Dashboard with Property/Person tracking is ready!");
+  Logger.log("Next: Test with testPnLEndpoint()");
+}
+
+/**
+ * Verify P&L Named Ranges
+ * 
+ * This function checks that all required named ranges exist and have valid references
+ */
+function verifyPnLNamedRanges() {
+  Logger.log("=== Verifying P&L Named Ranges ===");
+  
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const namedRanges = ss.getNamedRanges();
+  
+  const requiredRanges = [
+    'Month_Total_Revenue',
+    'Month_Property_Person_Expense',
+    'Month_Total_Overheads', 
+    'Month_GOP',
+    'Month_EBITDA_Margin',
+    'Year_Total_Revenue',
+    'Year_Property_Person_Expense',
+    'Year_Total_Overheads',
+    'Year_GOP',
+    'Year_EBITDA_Margin'
+  ];
+  
+  var foundCount = 0;
+  var missingRanges = [];
+  
+  requiredRanges.forEach(function(rangeName) {
+    var found = false;
+    
+    namedRanges.forEach(function(nr) {
+      if (nr.getName() === rangeName) {
+        const range = nr.getRange();
+        const value = range.getValue();
+        Logger.log("✓ " + rangeName + " → " + range.getA1Notation() + " (value: " + value + ")");
+        found = true;
+        foundCount++;
+      }
+    });
+    
+    if (!found) {
+      missingRanges.push(rangeName);
+    }
+  });
+  
+  Logger.log("");
+  Logger.log("=== VERIFICATION SUMMARY ===");
+  Logger.log("✅ Found: " + foundCount + "/" + requiredRanges.length + " required ranges");
+  
+  if (missingRanges.length > 0) {
+    Logger.log("❌ Missing ranges:");
+    missingRanges.forEach(function(name) {
+      Logger.log("  - " + name);
+    });
+    Logger.log("");
+    Logger.log("💡 Run createPnLNamedRanges() to create missing ranges");
+  } else {
+    Logger.log("🎉 All required named ranges found! P&L Dashboard ready!");
+  }
+  
+  return {
+    total: requiredRanges.length,
+    found: foundCount,
+    missing: missingRanges
+  };
 }
 

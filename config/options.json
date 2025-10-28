@@ -11,11 +11,11 @@
     "Revenue - Commision",
     "Revenue - Sales",
     "Revenue - Services",
+    "Revenue - Rental Income",
     "Fixed Costs",
     "EXP - Utilities - Gas",
     "EXP - Utilities - Water",
     "EXP - Utilities  - Electricity",
-    "EXPENSES",
     "EXP - Administration & General - License & Certificates",
     "EXP - Construction - Structure",
     "EXP - Construction - Overheads/General/Unclassified",
@@ -34,7 +34,8 @@
     "EXP - Repairs & Maintenance - Electrical & Mechanical",
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
-    "EXP - Construction - Wall"
+    "EXP - Construction - Wall",
+    "EXP - Other Expenses"
   ],
   "typeOfPayment": [
     "Credit card",

@@ -612,6 +612,21 @@ export default function UploadPage() {
             )}
           </motion.div>
 
+          {/* Help message for category selection */}
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-3"
+          >
+            <div className="flex items-center gap-2 text-xs text-text-tertiary">
+              <div className="w-1.5 h-1.5 bg-brand-primary rounded-full flex-shrink-0"></div>
+              <span>
+                Can't find the right category? Use <span className="text-brand-primary font-medium">"EXP - Other Expenses"</span> 
+              </span>
+            </div>
+          </motion.div>
+
           {/* Hints with icons */}
           <div className="mt-3 space-y-1.5">
             <div className="flex items-start gap-2 text-xs text-text-tertiary">

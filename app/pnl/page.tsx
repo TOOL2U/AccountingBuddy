@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, DollarSign, AlertCircle, RefreshCw } from 'lucide-react';
 import { uiStaggerContainer, cardAnimationVariants } from '@/hooks/usePageAnimations';
+import PropertyPersonModal from '@/components/PropertyPersonModal';
 
 // Type definitions
 interface PnLPeriodData {
   revenue: number;
   overheads: number;
+  propertyPersonExpense: number;
   gop: number;
   ebitdaMargin: number;
 }
@@ -26,6 +28,8 @@ interface KPICardProps {
   isCurrency?: boolean;
   period: 'month' | 'year';
   isLoading?: boolean;
+  onClick?: () => void;
+  isClickable?: boolean;
 }
 
 // Format currency in THB
@@ -42,7 +46,7 @@ function formatPercentage(value: number): string {
 }
 
 // KPI Card Component
-function KPICard({ title, value, isPercentage, isCurrency, period, isLoading }: KPICardProps) {
+function KPICard({ title, value, isPercentage, isCurrency, period, isLoading, onClick, isClickable }: KPICardProps) {
   const isPositive = value >= 0;
   const periodLabel = period === 'month' ? 'MTD' : 'YTD';
   
@@ -61,25 +65,30 @@ function KPICard({ title, value, isPercentage, isCurrency, period, isLoading }: 
     );
   }
 
-  return (
-    <motion.div
-      className="glass rounded-2xl p-6 hover:bg-white/[0.07] transition-all duration-200"
-      variants={cardAnimationVariants}
-      whileHover={{ y: -2 }}
-    >
+  const cardContent = (
+    <>
       {/* Period Badge */}
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-medium text-text-tertiary uppercase tracking-wider">
           {periodLabel}
         </span>
-        {isCurrency && (
-          <DollarSign className="w-4 h-4 text-brand-primary" />
-        )}
+        <div className="flex items-center gap-1">
+          {isCurrency && (
+            <DollarSign className="w-4 h-4 text-brand-primary" />
+          )}
+          {isClickable && (
+            <svg className="w-4 h-4 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          )}
+        </div>
       </div>
 
       {/* Title */}
       <h3 className="text-sm font-medium text-text-secondary mb-2">
         {title}
+        {isClickable && <span className="text-xs text-text-tertiary ml-1">(click for details)</span>}
       </h3>
 
       {/* Value */}
@@ -109,6 +118,29 @@ function KPICard({ title, value, isPercentage, isCurrency, period, isLoading }: 
       <p className="text-xs text-text-tertiary mt-2">
         Live from P&L sheet
       </p>
+    </>
+  );
+
+  if (isClickable && onClick) {
+    return (
+      <motion.button
+        className="glass rounded-2xl p-6 hover:bg-white/[0.07] transition-all duration-200 w-full text-left group"
+        variants={cardAnimationVariants}
+        whileHover={{ y: -2 }}
+        onClick={onClick}
+      >
+        {cardContent}
+      </motion.button>
+    );
+  }
+
+  return (
+    <motion.div
+      className="glass rounded-2xl p-6 hover:bg-white/[0.07] transition-all duration-200"
+      variants={cardAnimationVariants}
+      whileHover={{ y: -2 }}
+    >
+      {cardContent}
     </motion.div>
   );
 }
@@ -150,6 +182,17 @@ export default function PnLPage() {
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [warnings, setWarnings] = useState<string[]>([]);
   const [computedFallbacks, setComputedFallbacks] = useState<string[]>([]);
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalPeriod, setModalPeriod] = useState<'month' | 'year'>('month');
+  const [modalTotalExpense, setModalTotalExpense] = useState(0);
+
+  const openPropertyPersonModal = (period: 'month' | 'year', totalExpense: number) => {
+    setModalPeriod(period);
+    setModalTotalExpense(totalExpense);
+    setIsModalOpen(true);
+  };
 
   const fetchPnLData = async () => {
     try {
@@ -271,7 +314,7 @@ export default function PnLPage() {
           <h2 className="text-lg font-semibold text-text-primary mb-4">
             Month to Date
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <KPICard
               title="Total Revenue"
               value={data?.month.revenue || 0}
@@ -285,6 +328,15 @@ export default function PnLPage() {
               isCurrency
               period="month"
               isLoading={isLoading}
+            />
+            <KPICard
+              title="Property/Person Expense"
+              value={data?.month.propertyPersonExpense || 0}
+              isCurrency
+              period="month"
+              isLoading={isLoading}
+              isClickable
+              onClick={() => openPropertyPersonModal('month', data?.month.propertyPersonExpense || 0)}
             />
             <KPICard
               title="Gross Operating Profit"
@@ -308,7 +360,7 @@ export default function PnLPage() {
           <h2 className="text-lg font-semibold text-text-primary mb-4">
             Year to Date
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <KPICard
               title="Total Revenue"
               value={data?.year.revenue || 0}
@@ -322,6 +374,15 @@ export default function PnLPage() {
               isCurrency
               period="year"
               isLoading={isLoading}
+            />
+            <KPICard
+              title="Property/Person Expense"
+              value={data?.year.propertyPersonExpense || 0}
+              isCurrency
+              period="year"
+              isLoading={isLoading}
+              isClickable
+              onClick={() => openPropertyPersonModal('year', data?.year.propertyPersonExpense || 0)}
             />
             <KPICard
               title="Gross Operating Profit"
@@ -348,6 +409,14 @@ export default function PnLPage() {
           onRetry={fetchPnLData}
         />
       )}
+
+      {/* Property/Person Modal */}
+      <PropertyPersonModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        period={modalPeriod}
+        totalExpense={modalTotalExpense}
+      />
     </div>
   );
 }

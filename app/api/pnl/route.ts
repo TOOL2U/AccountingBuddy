@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 interface PnLPeriodData {
   revenue: number;
   overheads: number;
+  propertyPersonExpense: number;
   gop: number;
   ebitdaMargin: number;
 }

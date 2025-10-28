@@ -4,13 +4,13 @@
     "Alesia House",
     "Lanna House",
     "Parents House",
-    "Shaun Ducker",
-    "Maria Ren"
+    "Shaun Ducker"
   ],
   "typeOfOperation": [
     "Revenue - Commision",
     "Revenue - Sales",
     "Revenue - Services",
+    "Revenue - Rental Income",
     "Fixed Costs",
     "EXP - Utilities - Gas",
     "EXP - Utilities - Water",
@@ -34,18 +34,18 @@
     "EXP - Repairs & Maintenance - Electrical & Mechanical",
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
-    "EXP - Construction - Wall"
+    "EXP - Construction - Wall",
+    "EXP - Other Expenses"
   ],
   "typeOfPayment": [
     "Credit card",
-    "Bank transfer",
-    "Cash"
+    "Bank transfer"
   ],
   "validationRanges": {
-    "property": "Data!$A$38:$A$43",
-    "typeOfOperation": "Data!$A$4:$A$33",
-    "typeOfPayment": "Data!$A$71:$A$73"
+    "property": "Data!$A$39:$A$44",
+    "typeOfOperation": "Data!$A$4:$A$35",
+    "typeOfPayment": "Data!$A$72:$A$74"
   },
-  "fetchedAt": "2025-10-27T19:30:50.618Z",
-  "source": "live_validation_rules"
+  "fetchedAt": "2025-10-28T03:54:01.196Z",
+  "source": "google_sheets_api_cleaned"
 }

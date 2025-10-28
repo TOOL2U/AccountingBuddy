@@ -1,20 +1,14 @@
 {
   "property": [
-    "Bank transfer",
-    "Cash",
-    "Sia Moon",
-    "Villa 1"
+    "Shaun Ducker"
   ],
   "typeOfOperation": [
-    "Construction materials",
-    "EXP - Decor",
-    "Test receipt from Apps Script"
+    "EXP - Repairs & Maintenance - Landscaping"
   ],
   "typeOfPayment": [
-    "Card",
-    "TEST-001"
+    "Cash"
   ],
-  "extractedAt": "2025-10-25T05:03:08.237Z",
+  "extractedAt": "2025-10-28T03:48:39.439Z",
   "source": "actual_data",
-  "rowCount": 6
+  "rowCount": 1
 }

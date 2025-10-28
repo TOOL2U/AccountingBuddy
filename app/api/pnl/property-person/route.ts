@@ -1,0 +1,82 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+interface PropertyPersonItem {
+  name: string;
+  expense: number;
+  percentage: number;
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const period = searchParams.get('period') || 'month';
+
+    if (!period || !['month', 'year'].includes(period)) {
+      return NextResponse.json(
+        { error: 'Invalid period. Must be "month" or "year".' },
+        { status: 400 }
+      );
+    }
+
+    const scriptUrl = process.env.SHEETS_WEBHOOK_URL;
+    const secret = process.env.SHEETS_WEBHOOK_SECRET;
+    
+    if (!scriptUrl || !secret) {
+      return NextResponse.json(
+        { error: 'Google Apps Script configuration missing' },
+        { status: 500 }
+      );
+    }
+
+    console.log(`🔍 Fetching property/person data for period: ${period}`);
+    console.log(`📤 Sending to Apps Script:`, {
+      action: 'getPropertyPersonDetails',
+      period: period,
+      secret: '[REDACTED]'
+    });
+
+    const response = await fetch(scriptUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'getPropertyPersonDetails',
+        period: period,
+        secret: secret
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Apps Script responded with status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (!result.ok) {
+      throw new Error(result.error || 'Apps Script returned error');
+    }
+
+    console.log(`✅ Successfully fetched ${result.data?.length || 0} property/person items`);
+
+    return NextResponse.json({
+      success: true,
+      data: result.data || [],
+      period: period,
+      totalExpense: result.totalExpense || 0,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ Property/Person API Error:', error);
+    
+    return NextResponse.json(
+      { 
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch property/person data',
+        data: []
+      },
+      { status: 500 }
+    );
+  }
+}
