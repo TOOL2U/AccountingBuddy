@@ -622,7 +622,7 @@ export default function UploadPage() {
             <div className="flex items-center gap-2 text-xs text-text-tertiary">
               <div className="w-1.5 h-1.5 bg-brand-primary rounded-full flex-shrink-0"></div>
               <span>
-                Can't find the right category? Use <span className="text-brand-primary font-medium">"EXP - Other Expenses"</span> 
+                Can&apos;t find the right category? Use <span className="text-brand-primary font-medium">&quot;EXP - Other Expenses&quot;</span> as a catch-all
               </span>
             </div>
           </motion.div>
@@ -664,7 +664,7 @@ export default function UploadPage() {
                   Processing...
                 </span>
               ) : (
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 border border-brand-primary/30 rounded-full px-3 py-1.5">
                   Parse & Review
                   <ArrowRight className="w-4 h-4" />
                 </span>
