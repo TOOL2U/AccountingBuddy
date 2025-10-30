@@ -11,9 +11,9 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Toast from '@/components/ui/Toast';
-import { X, Search } from 'lucide-react';
+import { X } from 'lucide-react';
 
-export default function ReviewPage({ params }: any) {
+export default function ReviewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showToast, setShowToast] = useState(false);
@@ -24,7 +24,6 @@ export default function ReviewPage({ params }: any) {
 
   // Search state for filtering
   const [categorySearch, setCategorySearch] = useState<string>('');
-  const [paymentSearch, setPaymentSearch] = useState<string>('');
 
   // Refs for select elements
   const categorySelectRef = useRef<HTMLSelectElement>(null);
@@ -38,10 +37,6 @@ export default function ReviewPage({ params }: any) {
   const filteredCategories = options.typeOfOperation
     .filter(op => !['FIXED COSTS', 'Fixed Costs', 'EXPENSES', 'REVENUES', 'Property'].includes(op))
     .filter(op => categorySearch.trim() === '' || op.toLowerCase().includes(categorySearch.toLowerCase()));
-
-  // Filter payment types based on search
-  const filteredPaymentTypes = options.typeOfPayment
-    .filter(payment => paymentSearch.trim() === '' || payment.toLowerCase().includes(paymentSearch.toLowerCase()));
 
   // Form data state - expanded schema for Accounting Buddy P&L 2025
   const [formData, setFormData] = useState({
@@ -463,89 +458,26 @@ export default function ReviewPage({ params }: any) {
             )}
           </div>
 
-          {/* Type of Payment Field */}
+          {/* Type of Payment Field - Read-only (already selected in quick entry) */}
           <div>
             <div className="flex items-center gap-2 mb-2">
               <label htmlFor="typeOfPayment" className="text-sm font-medium text-text-primary">
                 Type of Payment
               </label>
-              {confidence.typeOfPayment < 0.8 && (
-                <Badge variant="warning">⚠️ Needs review</Badge>
-              )}
-              {confidence.typeOfPayment >= 0.8 && (
-                <Badge variant="info">AI: {(confidence.typeOfPayment * 100).toFixed(0)}%</Badge>
-              )}
+              <Badge variant="success">✓ From quick entry</Badge>
             </div>
 
-            {/* Search input */}
-            <div className="relative mb-2">
-              <input
-                type="text"
-                value={paymentSearch}
-                onChange={(e) => setPaymentSearch(e.target.value)}
-                placeholder="Search payment types... e.g. 'cash', 'bank transfer'"
-                className="w-full px-4 py-2.5 text-sm bg-surface-1 border border-border-light rounded-xl text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/30 transition-all"
-              />
-              {paymentSearch && (
-                <button
-                  type="button"
-                  onClick={() => setPaymentSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
+            {/* Display selected payment type as read-only */}
+            <div className="w-full px-4 py-2.5 bg-surface-1 border border-border-light rounded-xl text-text-primary">
+              {formData.typeOfPayment || 'Not specified'}
             </div>
 
-            {/* Results count */}
-            {paymentSearch && (
-              <div className="text-xs text-text-tertiary mb-2">
-                {filteredPaymentTypes.length > 0 ? (
-                  <span className="text-brand-primary">
-                    {filteredPaymentTypes.length} {filteredPaymentTypes.length === 1 ? 'result' : 'results'} found - tap to select
-                  </span>
-                ) : (
-                  <span className="text-status-warning">No results found</span>
-                )}
-              </div>
-            )}
-
-            {/* Show filtered results as clickable list */}
-            {paymentSearch && filteredPaymentTypes.length > 0 && (
-              <div className="max-h-64 overflow-y-auto bg-surface-1 border border-border-light rounded-xl">
-                {filteredPaymentTypes.map((payment) => (
-                  <button
-                    key={payment}
-                    type="button"
-                    onClick={() => {
-                      setFormData({ ...formData, typeOfPayment: payment });
-                      setPaymentSearch('');
-                    }}
-                    className="w-full px-4 py-3 text-left text-sm text-text-primary hover:bg-surface-2 active:bg-brand-primary/20 transition-colors border-b border-border-light last:border-b-0"
-                  >
-                    {payment}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Show all payment types when not searching */}
-            {!paymentSearch && (
-              <div className="max-h-64 overflow-y-auto bg-surface-1 border border-border-light rounded-xl">
-                {filteredPaymentTypes.map((payment) => (
-                  <button
-                    key={payment}
-                    type="button"
-                    onClick={() => {
-                      setFormData({ ...formData, typeOfPayment: payment });
-                    }}
-                    className="w-full px-4 py-3 text-left text-sm text-text-primary hover:bg-surface-2 active:bg-brand-primary/20 transition-colors border-b border-border-light last:border-b-0"
-                  >
-                    {payment}
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Hidden input to ensure value is submitted */}
+            <input
+              type="hidden"
+              name="typeOfPayment"
+              value={formData.typeOfPayment}
+            />
           </div>
 
           {/* Detail Field */}

@@ -75,10 +75,21 @@ async function syncFromGoogleSheets() {
     
     const valueRanges = batchResponse.data.valueRanges || [];
     
-    // Parse the results
-    const newTypeOfOperation = valueRanges[0]?.values?.flat().filter(v => v && v.trim()) || [];
-    const newProperties = valueRanges[1]?.values?.flat().filter(v => v && v.trim()) || [];
-    const newTypeOfPayment = valueRanges[2]?.values?.flat().filter(v => v && v.trim()) || [];
+    // Headers to filter out (these are section headers in the sheet, not actual values)
+    const headersToFilter = ['FIXED COSTS', 'Fixed Costs', 'EXPENSES', 'REVENUES', 'PROPERTY', 'TYPE OF PAYMENT'];
+    
+    // Parse the results and filter out headers
+    const newTypeOfOperation = valueRanges[0]?.values?.flat()
+      .filter(v => v && v.trim())
+      .filter(v => !headersToFilter.includes(v.trim())) || [];
+    
+    const newProperties = valueRanges[1]?.values?.flat()
+      .filter(v => v && v.trim())
+      .filter(v => !headersToFilter.includes(v.trim())) || [];
+    
+    const newTypeOfPayment = valueRanges[2]?.values?.flat()
+      .filter(v => v && v.trim())
+      .filter(v => !headersToFilter.includes(v.trim())) || [];
     
     console.log('\\n📊 Fetched from Google Sheets:');
     console.log(`   Properties: ${newProperties.length} items`);

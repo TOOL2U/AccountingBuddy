@@ -24,20 +24,21 @@ if (!SPREADSHEET_ID) {
 const SHEET_NAME = 'P&L (DO NOT EDIT)';
 
 // Expected structure based on the Apps Script code
+// Updated 2025-10-30: New expense row added, shifted totals down by 1
 const EXPECTED_RANGES = {
   // Month ranges (dynamic column based on current month)
   'Month_Total_Revenue': { row: 11, description: 'Total Revenue for current month' },
   'Month_Property_Person_Expense': { row: 20, description: 'Property/Person Expense for current month' },
-  'Month_Total_Overheads': { row: 52, description: 'Total Overhead Expense for current month' },
-  'Month_GOP': { row: 49, description: 'Gross Operating Profit for current month' },
-  'Month_EBITDA_Margin': { row: 50, description: 'EBITDA Margin for current month' },
-  
+  'Month_Total_Overheads': { row: 53, description: 'Total Overhead Expense for current month' },  // Updated from 52 to 53
+  'Month_GOP': { row: 56, description: 'Gross Operating Profit for current month' },  // Updated from 55 to 56
+  'Month_EBITDA_Margin': { row: 57, description: 'EBITDA Margin for current month' },  // Updated from 56 to 57
+
   // Year ranges (always column Q)
   'Year_Total_Revenue': { row: 11, col: 'Q', description: 'Total Revenue for year' },
   'Year_Property_Person_Expense': { row: 20, col: 'Q', description: 'Property/Person Expense for year' },
-  'Year_Total_Overheads': { row: 52, col: 'Q', description: 'Total Overhead Expense for year' },
-  'Year_GOP': { row: 49, col: 'Q', description: 'Gross Operating Profit for year' },
-  'Year_EBITDA_Margin': { row: 50, col: 'Q', description: 'EBITDA Margin for year' },
+  'Year_Total_Overheads': { row: 53, col: 'Q', description: 'Total Overhead Expense for year' },  // Updated from 52 to 53
+  'Year_GOP': { row: 56, col: 'Q', description: 'Gross Operating Profit for year' },  // Updated from 55 to 56
+  'Year_EBITDA_Margin': { row: 57, col: 'Q', description: 'EBITDA Margin for year' },  // Updated from 56 to 57
 };
 
 async function checkAllNamedRanges() {

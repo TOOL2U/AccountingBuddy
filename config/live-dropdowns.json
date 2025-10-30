@@ -8,8 +8,8 @@
     "Maria Ren"
   ],
   "typeOfOperation": [
-    "Revenue - Commision",
-    "Revenue - Sales",
+    "Revenue - Commision ",
+    "Revenue - Sales ",
     "Revenue - Services",
     "Revenue - Rental Income",
     "EXP - Utilities - Gas",
@@ -23,18 +23,19 @@
     "EXP - Administration & General - Professional fees",
     "EXP - Administration & General - Office supplies",
     "EXP - Administration & General  - Subscription, Software & Membership",
-    "EXP - Construction - Electric Supplies",
+    "EXP - Construction - Electric Supplies ",
     "EXP - Appliances & Electronics",
     "EXP - Windows, Doors, Locks & Hardware",
-    "EXP - Repairs & Maintenance  - Furniture & Decorative Items",
+    "EXP - Repairs & Maintenance  - Furniture & Decorative Items ",
     "EXP - Repairs & Maintenance  - Waste removal",
-    "EXP - Repairs & Maintenance - Tools & Equipment",
+    "EXP - Repairs & Maintenance - Tools & Equipment ",
     "EXP - Repairs & Maintenance - Painting & Decoration",
     "EXP - Repairs & Maintenance - Electrical & Mechanical",
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
     "EXP - Construction - Wall",
-    "EXP - Other Expenses"
+    "EXP - Other Expenses",
+    "EXP - Personal - Massage"
   ],
   "typeOfPayment": [
     "Bank Transfer - Bangkok Bank - Shaun Ducker",
@@ -43,7 +44,7 @@
     "Cash"
   ],
   "extractedAt": "2025-10-29T08:35:32.774Z",
-  "source": "validation_ranges",
+  "source": "google_sheets_api",
   "ranges": {
     "property": "Data!A38:A43",
     "typeOfOperation": "Data!A4:A35",
@@ -68,5 +69,6 @@
       "SAMPLE",
       "Sample"
     ]
-  }
+  },
+  "fetchedAt": "2025-10-30T07:00:14.838Z"
 }

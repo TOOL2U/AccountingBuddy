@@ -373,7 +373,7 @@ function doGet(e) {
         '60-second caching with CacheService',
         'Computed EBITDA fallbacks',
         'Property/Person expense tracking',
-        'Overhead expenses breakdown (23 categories)',
+        'Overhead expenses breakdown (24 categories)',
         'Bank & Cash balance management',
         'Inbox data retrieval',
         'Delete entry functionality',
@@ -860,8 +860,9 @@ function handleGetPropertyPersonDetails(period) {
 // ============================================================================
 /**
  * Get overhead expenses details for month or year
- * Extracts 23 expense categories from rows 29-51 of P&L sheet
- * 
+ * Extracts 24 expense categories from rows 29-52 of P&L sheet
+ * Updated 2025-10-30: Added row 52 for new expense category
+ *
  * @param {string} period - 'month' or 'year'
  * @returns {ContentService.TextOutput} JSON response with expense data
  */
@@ -881,10 +882,11 @@ function handleGetOverheadExpensesDetails(period) {
       return createErrorResponse('P&L sheet not found. Looking for: "P&L (DO NOT EDIT)"');
     }
 
-    // Overhead expenses are in rows 29-51 (23 rows), column A
+    // Overhead expenses are in rows 29-52 (24 rows), column A
+    // Updated 2025-10-30: Added row 52 for new expense category
     const startRow = 29;
-    const endRow = 51;
-    const numRows = endRow - startRow + 1; // 23 rows
+    const endRow = 52;  // Updated from 51 to 52
+    const numRows = endRow - startRow + 1; // 24 rows
     
     // Get expense names (column A)
     const namesRange = sheet.getRange("A" + startRow + ":A" + endRow);
@@ -1134,6 +1136,49 @@ function testDiscovery() {
 
   const response = doPost(mockEvent);
   Logger.log('=== Discovery Test Response ===');
+  Logger.log(response.getContent());
+}
+
+/**
+ * Test balance append endpoint
+ */
+function testBalanceAppend() {
+  const testPayload = {
+    action: 'balancesAppend',
+    secret: EXPECTED_SECRET,
+    bankName: 'Test Bank',
+    balance: 5000,
+    note: 'Test balance entry from Apps Script'
+  };
+
+  const mockEvent = {
+    postData: {
+      contents: JSON.stringify(testPayload)
+    }
+  };
+
+  const response = doPost(mockEvent);
+  Logger.log('=== Balance Append Test Response ===');
+  Logger.log(response.getContent());
+}
+
+/**
+ * Test balance get latest endpoint
+ */
+function testBalanceGetLatest() {
+  const testPayload = {
+    action: 'balancesGetLatest',
+    secret: EXPECTED_SECRET
+  };
+
+  const mockEvent = {
+    postData: {
+      contents: JSON.stringify(testPayload)
+    }
+  };
+
+  const response = doPost(mockEvent);
+  Logger.log('=== Balance Get Latest Test Response ===');
   Logger.log(response.getContent());
 }
 
@@ -1443,17 +1488,17 @@ function createPnLNamedRanges() {
     },
     {
       name: "Month_Total_Overheads",
-      cell: monthColumnLetter + "52",
+      cell: monthColumnLetter + "53",  // Updated from 52 to 53 (new expense row added)
       description: "This Month Total Overhead Expense (" + currentMonth + ")"
     },
     {
       name: "Month_GOP",
-      cell: monthColumnLetter + "55",
+      cell: monthColumnLetter + "56",  // Updated from 55 to 56 (new expense row added)
       description: "This Month Gross Operating Profit (" + currentMonth + ")"
     },
     {
       name: "Month_EBITDA_Margin",
-      cell: monthColumnLetter + "56",
+      cell: monthColumnLetter + "57",  // Updated from 56 to 57 (new expense row added)
       description: "This Month EBITDA Margin (" + currentMonth + ")"
     },
     
@@ -1470,17 +1515,17 @@ function createPnLNamedRanges() {
     },
     {
       name: "Year_Total_Overheads",
-      cell: "Q52",
+      cell: "Q53",  // Updated from Q52 to Q53 (new expense row added)
       description: "Year Total Overhead Expense"
     },
     {
       name: "Year_GOP",
-      cell: "Q55",
+      cell: "Q56",  // Updated from Q55 to Q56 (new expense row added)
       description: "Year Gross Operating Profit"
     },
     {
       name: "Year_EBITDA_Margin",
-      cell: "Q56",
+      cell: "Q57",  // Updated from Q56 to Q57 (new expense row added)
       description: "Year EBITDA Margin"
     }
   ];
