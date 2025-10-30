@@ -408,7 +408,7 @@ export default function UploadPage() {
       <div className="max-w-4xl mx-auto px-2 md:px-8">
       {/* Header with stunning logo and animations */}
       <div className="text-center mb-8 md:mb-12 relative z-10">
-        {/* Logo/Icon with glow effect */}
+        {/* Logo/Icon with glow effect - Hidden on mobile */}
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
@@ -418,7 +418,7 @@ export default function UploadPage() {
             damping: 15,
             delay: 0.1
           }}
-          className="inline-block mb-4"
+          className="hidden md:inline-block mb-4"
         >
           <div className="relative">
             {/* Glow ring */}
