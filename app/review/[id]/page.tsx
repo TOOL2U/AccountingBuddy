@@ -68,12 +68,13 @@ export default function ReviewPage({ params }: any) {
           credit: String(extractedData.credit || ''),
         };
         
-        // SAFETY CHECK: Ensure typeOfPayment is a valid option
-        const validPaymentOptions = ['Credit card', 'Bank transfer', 'Cash'];
-        if (newFormData.typeOfPayment && !validPaymentOptions.includes(newFormData.typeOfPayment)) {
+        // SAFETY CHECK: Ensure typeOfPayment is a valid option from options.json
+        if (newFormData.typeOfPayment && !options.typeOfPayment.includes(newFormData.typeOfPayment)) {
           console.warn('[REVIEW] Invalid typeOfPayment detected:', newFormData.typeOfPayment);
-          console.warn('[REVIEW] Valid options are:', validPaymentOptions);
+          console.warn('[REVIEW] Valid options are:', options.typeOfPayment);
           newFormData.typeOfPayment = ''; // Reset to empty to show "Select payment type"
+        } else if (newFormData.typeOfPayment) {
+          console.log('[REVIEW] ✓ Valid typeOfPayment received from quick entry:', newFormData.typeOfPayment);
         }
         
         setFormData(newFormData);
@@ -91,7 +92,8 @@ export default function ReviewPage({ params }: any) {
         // Keep empty form if parsing fails
       }
     }
-  }, [searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // options is from getOptions() which returns a stable reference
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -99,6 +101,32 @@ export default function ReviewPage({ params }: any) {
     // Clear category error when user selects a valid category
     if (name === 'typeOfOperation' && value && value !== '') {
       setCategoryError(false);
+      
+      // AUTOMATIC CREDIT DETECTION: If Revenue option selected, automatically use credit
+      if (value.startsWith('Revenue')) {
+        const currentAmount = parseFloat(formData.debit || formData.credit || '0');
+        console.log(`[AUTO] Revenue detected: "${value}" - Moving amount to credit: ${currentAmount}`);
+        setFormData({
+          ...formData,
+          [name]: value,
+          credit: currentAmount.toString(),
+          debit: '0',
+        });
+        return; // Exit early to avoid double state update
+      }
+      
+      // AUTOMATIC DEBIT DETECTION: If EXP option selected, automatically use debit
+      if (value.startsWith('EXP')) {
+        const currentAmount = parseFloat(formData.debit || formData.credit || '0');
+        console.log(`[AUTO] Expense detected: "${value}" - Moving amount to debit: ${currentAmount}`);
+        setFormData({
+          ...formData,
+          [name]: value,
+          debit: currentAmount.toString(),
+          credit: '0',
+        });
+        return; // Exit early to avoid double state update
+      }
     }
     
     setFormData({
@@ -106,6 +134,8 @@ export default function ReviewPage({ params }: any) {
       [name]: value,
     });
   };
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,7 +255,7 @@ export default function ReviewPage({ params }: any) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="max-w-2xl mx-auto px-4 py-12"
+      className="max-w-2xl mx-auto px-4 py-12 page-upload"
     >
       {/* Header */}
       <div className="text-center mb-8">
@@ -307,9 +337,9 @@ export default function ReviewPage({ params }: any) {
               required
             >
               <option value="">Select property</option>
-              {options.properties.map((prop) => (
-                <option key={prop} value={prop}>
-                  {prop}
+              {options.properties.map((property) => (
+                <option key={property} value={property}>
+                  {property}
                 </option>
               ))}
             </select>
@@ -345,7 +375,7 @@ export default function ReviewPage({ params }: any) {
             >
               <option value="">Select operation type</option>
               {options.typeOfOperation
-                .filter(op => !['Fixed Costs', 'EXPENSES'].includes(op))
+                .filter(op => !['FIXED COSTS', 'Fixed Costs', 'EXPENSES', 'REVENUES', 'Property'].includes(op))
                 .map((op) => (
                 <option key={op} value={op}>
                   {op}

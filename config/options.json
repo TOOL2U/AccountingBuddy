@@ -12,7 +12,6 @@
     "Revenue - Sales",
     "Revenue - Services",
     "Revenue - Rental Income",
-    "Fixed Costs",
     "EXP - Utilities - Gas",
     "EXP - Utilities - Water",
     "EXP - Utilities  - Electricity",
@@ -38,21 +37,18 @@
     "EXP - Other Expenses"
   ],
   "typeOfPayment": [
-    "Credit card",
-    "Bank transfer",
+    "Bank Transfer - Bangkok Bank - Shaun Ducker",
+    "Bank Transfer - Bangkok Bank - Maria Ren",
+    "Bank transfer - Krung Thai Bank - Family Account",
     "Cash"
   ],
   "keywords": {
     "properties": {
       "Sia Moon - Land - General": [
         "sia",
-        "sia moon",
         "moon",
         "land",
-        "general",
-        "main",
-        "primary",
-        "default"
+        "general"
       ],
       "Alesia House": [
         "alesia",
@@ -90,9 +86,7 @@
         "maria",
         "ren",
         "maria ren",
-        "mr",
-        "co-owner",
-        "partner"
+        "mr"
       ]
     },
     "typeOfOperation": {
@@ -120,6 +114,11 @@
         "work",
         "professional service",
         "labor income"
+      ],
+      "Revenue - Rental Income": [
+        "revenue",
+        "rental",
+        "income"
       ],
       "EXP - Utilities - Gas": [
         "gas",
@@ -384,35 +383,41 @@
         "partition",
         "wall construction",
         "masonry"
+      ],
+      "EXP - Other Expenses": [
+        "exp",
+        "other",
+        "expenses"
       ]
     },
     "typeOfPayment": {
-      "Credit card": [
-        "credit card",
-        "credit",
-        "visa",
-        "mastercard",
-        "amex",
-        "american express",
-        "plastic"
-      ],
-      "Bank transfer": [
+      "Bank Transfer - Bangkok Bank - Shaun Ducker": [
+        "bank",
         "transfer",
-        "bank transfer",
-        "wire",
-        "online transfer",
-        "internet banking",
-        "mobile banking",
-        "promptpay",
-        "swift"
+        "bangkok",
+        "bank",
+        "shaun",
+        "ducker"
+      ],
+      "Bank Transfer - Bangkok Bank - Maria Ren": [
+        "bank",
+        "transfer",
+        "bangkok",
+        "bank",
+        "maria",
+        "ren"
+      ],
+      "Bank transfer - Krung Thai Bank - Family Account": [
+        "bank",
+        "transfer",
+        "krung",
+        "thai",
+        "bank",
+        "family",
+        "account"
       ],
       "Cash": [
-        "cash",
-        "money",
-        "bills",
-        "coins",
-        "physical money",
-        "hand to hand"
+        "cash"
       ]
     }
   }

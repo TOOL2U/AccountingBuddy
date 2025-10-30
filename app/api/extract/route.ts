@@ -130,7 +130,7 @@ Example 1: "27/Feb/2025 Sia Moon wall materials bank transfer 4785 baht"
   "year": "2025",
   "property": "Sia Moon - Land - General",
   "typeOfOperation": "EXP - Construction - Wall",
-  "typeOfPayment": "Bank transfer",
+  "typeOfPayment": "Bank Transfer - Bangkok Bank - Shaun Ducker",
   "detail": "Materials",
   "ref": "",
   "debit": 4785,
@@ -151,14 +151,14 @@ Example 2: "labour payment cash 135200 sia moon"
   "credit": 0
 }
 
-Example 3: "electric supplies cable wire bank transfer 3200"
+Example 3: "electric supplies cable wire bank transfer maria 3200"
 → {
   "day": "${currentDate.getDate()}",
   "month": "${currentDate.toLocaleString('en', { month: 'short' })}",
   "year": "${currentDate.getFullYear()}",
   "property": "Sia Moon - Land - General",
   "typeOfOperation": "EXP - Construction - Electric Supplies",
-  "typeOfPayment": "Bank transfer",
+  "typeOfPayment": "Bank Transfer - Bangkok Bank - Maria Ren",
   "detail": "Electric supplies cable wire",
   "ref": "",
   "debit": 3200,
@@ -186,8 +186,12 @@ SMART CATEGORIZATION RULES:
 
 3. Payment Methods:
    - "cash" → "Cash"
-   - "transfer", "bank" → "Bank transfer"
-   - "card", "credit" → "Credit card"
+   - "transfer", "bank" → Check if mentions "Shaun" or "Maria" or specific bank:
+     * "shaun ducker", "shaun" → "Bank Transfer - Bangkok Bank - Shaun Ducker"
+     * "maria ren", "maria" → "Bank Transfer - Bangkok Bank - Maria Ren"
+     * "krung thai", "kt bank" → "Bank transfer - Krung Thai Bank"
+     * Otherwise → "Bank Transfer - Bangkok Bank - Shaun Ducker" (default)
+   - If unclear → "Cash" (most common)
 
 Output fields:
 {
@@ -208,7 +212,7 @@ CRITICAL RULES:
 2. Property: Must be exact match from dropdown list. Default to "Sia Moon - Land - General"
 3. Operation: ONLY use exact match from dropdown list if confident match exists. If uncertain or no clear match → use empty string "". DO NOT guess categories.
 4. Payment: Must be exact match from dropdown list
-5. Amount: Remove ฿, commas, "baht". For expenses → debit field. For income → credit field. DEFAULT: If unclear, put amount in debit field (most transactions are expenses)
+5. Amount: Remove ฿, commas, "baht". **CRITICAL: If typeOfOperation starts with "Revenue" → use credit field and set debit to 0. If typeOfOperation starts with "EXP" → use debit field and set credit to 0**. DEFAULT: If unclear, put amount in debit field (most transactions are expenses)
 6. Detail: Keep concise but descriptive, capitalize first letter
 
 Return ONLY valid JSON, no additional text.`;
@@ -294,6 +298,26 @@ Return ONLY valid JSON, no additional text.`;
       extracted.property = normalized.property.value;
       extracted.typeOfOperation = normalized.typeOfOperation.value;
       extracted.typeOfPayment = normalized.typeOfPayment.value;
+      
+      // CRITICAL: Auto-detect Revenue categories and ensure they use credit
+      if (extracted.typeOfOperation && extracted.typeOfOperation.startsWith('Revenue')) {
+        const totalAmount = (extracted.debit || 0) + (extracted.credit || 0);
+        if (totalAmount > 0) {
+          console.log(`[AUTO-CREDIT] Revenue category detected: "${extracted.typeOfOperation}" - Moving amount ${totalAmount} to credit`);
+          extracted.credit = totalAmount;
+          extracted.debit = 0;
+        }
+      }
+      
+      // CRITICAL: Auto-detect EXP categories and ensure they use debit
+      if (extracted.typeOfOperation && extracted.typeOfOperation.startsWith('EXP')) {
+        const totalAmount = (extracted.debit || 0) + (extracted.credit || 0);
+        if (totalAmount > 0) {
+          console.log(`[AUTO-DEBIT] Expense category detected: "${extracted.typeOfOperation}" - Moving amount ${totalAmount} to debit`);
+          extracted.debit = totalAmount;
+          extracted.credit = 0;
+        }
+      }
       
       // If operation confidence is too low, set to empty string
       if (normalized.typeOfOperation.confidence < 0.7) {

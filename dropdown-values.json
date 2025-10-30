@@ -1,14 +1,16 @@
 {
   "property": [
-    "Shaun Ducker"
+    "Shaun Ducker",
+    "Sia Moon - Land - General"
   ],
   "typeOfOperation": [
+    "EXP - HR - Employees Salaries",
     "EXP - Repairs & Maintenance - Landscaping"
   ],
   "typeOfPayment": [
     "Cash"
   ],
-  "extractedAt": "2025-10-28T03:48:39.439Z",
+  "extractedAt": "2025-10-29T07:13:37.089Z",
   "source": "actual_data",
-  "rowCount": 1
+  "rowCount": 2
 }

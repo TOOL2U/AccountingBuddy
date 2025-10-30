@@ -278,6 +278,26 @@ export function parseManualCommand(input: string): ParseResult {
     data.typeOfOperation = operation;
     confidence += 0.3;
     reasons.push(`Detected operation: ${operation}`);
+    
+    // CRITICAL: Auto-detect Revenue categories and use credit instead of debit
+    if (operation.startsWith('Revenue')) {
+      if (transactionType === 'debit' && amount !== null) {
+        console.log(`[MANUAL AUTO-CREDIT] Revenue category detected: "${operation}" - Moving amount ${amount} to credit`);
+        data.credit = amount;
+        data.debit = 0;
+        reasons.push('Revenue → Auto-switched to credit');
+      }
+    }
+    
+    // CRITICAL: Auto-detect EXP categories and use debit instead of credit
+    if (operation.startsWith('EXP')) {
+      if (transactionType === 'credit' && amount !== null) {
+        console.log(`[MANUAL AUTO-DEBIT] Expense category detected: "${operation}" - Moving amount ${amount} to debit`);
+        data.debit = amount;
+        data.credit = 0;
+        reasons.push('Expense → Auto-switched to debit');
+      }
+    }
   } else {
     // Use empty string to show "Select operation type" on review page
     data.typeOfOperation = '';

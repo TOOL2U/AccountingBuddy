@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, DollarSign, AlertCircle, RefreshCw } from 'lucide-react';
 import { uiStaggerContainer, cardAnimationVariants } from '@/hooks/usePageAnimations';
 import PropertyPersonModal from '@/components/PropertyPersonModal';
+import OverheadExpensesModal from '@/components/OverheadExpensesModal';
 
 // Type definitions
 interface PnLPeriodData {
@@ -183,15 +184,26 @@ export default function PnLPage() {
   const [warnings, setWarnings] = useState<string[]>([]);
   const [computedFallbacks, setComputedFallbacks] = useState<string[]>([]);
   
-  // Modal state
+  // Modal state for Property/Person
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalPeriod, setModalPeriod] = useState<'month' | 'year'>('month');
   const [modalTotalExpense, setModalTotalExpense] = useState(0);
+
+  // Modal state for Overhead Expenses
+  const [isOverheadModalOpen, setIsOverheadModalOpen] = useState(false);
+  const [overheadModalPeriod, setOverheadModalPeriod] = useState<'month' | 'year'>('month');
+  const [overheadModalTotalExpense, setOverheadModalTotalExpense] = useState(0);
 
   const openPropertyPersonModal = (period: 'month' | 'year', totalExpense: number) => {
     setModalPeriod(period);
     setModalTotalExpense(totalExpense);
     setIsModalOpen(true);
+  };
+
+  const openOverheadExpensesModal = (period: 'month' | 'year', totalExpense: number) => {
+    setOverheadModalPeriod(period);
+    setOverheadModalTotalExpense(totalExpense);
+    setIsOverheadModalOpen(true);
   };
 
   const fetchPnLData = async () => {
@@ -242,7 +254,7 @@ export default function PnLPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen page-pnl">
       {/* Background gradient */}
       <div className="fixed inset-0 bg-gradient-radial pointer-events-none" aria-hidden="true" />
 
@@ -328,6 +340,8 @@ export default function PnLPage() {
               isCurrency
               period="month"
               isLoading={isLoading}
+              isClickable
+              onClick={() => openOverheadExpensesModal('month', data?.month.overheads || 0)}
             />
             <KPICard
               title="Property/Person Expense"
@@ -374,6 +388,8 @@ export default function PnLPage() {
               isCurrency
               period="year"
               isLoading={isLoading}
+              isClickable
+              onClick={() => openOverheadExpensesModal('year', data?.year.overheads || 0)}
             />
             <KPICard
               title="Property/Person Expense"
@@ -416,6 +432,14 @@ export default function PnLPage() {
         onClose={() => setIsModalOpen(false)}
         period={modalPeriod}
         totalExpense={modalTotalExpense}
+      />
+
+      {/* Overhead Expenses Modal */}
+      <OverheadExpensesModal
+        isOpen={isOverheadModalOpen}
+        onClose={() => setIsOverheadModalOpen(false)}
+        period={overheadModalPeriod}
+        totalExpense={overheadModalTotalExpense}
       />
     </div>
   );

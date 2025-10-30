@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +11,7 @@ import { getOptions } from '@/utils/matchOption';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Textarea from '@/components/ui/Textarea';
+import OverlayDropdownPortal from '@/components/OverlayDropdownPortal';
 import { Zap, Camera, Upload, FileText, Sparkles, ArrowRight, CheckCircle2, Search, X } from 'lucide-react';
 
 export default function UploadPage() {
@@ -34,6 +35,15 @@ export default function UploadPage() {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
+  // Payment type search state
+  const [paymentSearch, setPaymentSearch] = useState<string>('');
+  const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<string>('');
+
+  // Refs for dropdown anchoring
+  const categoryAnchorRef = useRef<HTMLDivElement | null>(null);
+  const paymentAnchorRef = useRef<HTMLDivElement | null>(null);
+
   const acceptedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
 
   // Get dropdown options
@@ -48,13 +58,20 @@ export default function UploadPage() {
   const filteredCategories = categorySearch.trim()
     ? options.typeOfOperation.filter(category => {
         // Exclude header categories that shouldn't be selectable
-        const headerCategories = ['Fixed Costs', 'EXPENSES'];
+        const headerCategories = ['FIXED COSTS', 'Fixed Costs', 'EXPENSES', 'REVENUES', 'Property'];
         if (headerCategories.includes(category)) {
           return false;
         }
         // Filter by search term
         return category.toLowerCase().includes(categorySearch.toLowerCase());
       }).slice(0, 8) // Limit to 8 results for better UX
+    : [];
+
+  // Filter payment types based on search
+  const filteredPaymentTypes = paymentSearch.trim()
+    ? options.typeOfPayment.filter(payment => 
+        payment.toLowerCase().includes(paymentSearch.toLowerCase())
+      ).slice(0, 8) // Limit to 8 results for better UX
     : [];
 
   // Handle category selection
@@ -65,11 +82,25 @@ export default function UploadPage() {
     // Don't modify the manual command - category will be applied on review page
   };
 
+  // Handle payment type selection
+  const handlePaymentSelect = (payment: string) => {
+    setSelectedPayment(payment);
+    setPaymentSearch('');
+    setShowPaymentDropdown(false);
+  };
+
   // Handle category search input
   const handleCategorySearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setCategorySearch(value);
     setShowCategoryDropdown(value.trim().length > 0);
+  };
+
+  // Handle payment search input
+  const handlePaymentSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPaymentSearch(value);
+    setShowPaymentDropdown(value.trim().length > 0);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -129,6 +160,18 @@ export default function UploadPage() {
       return;
     }
 
+    // CRITICAL VALIDATION: Check if payment type is selected
+    if (!selectedPayment) {
+      setManualError('🚨 Please select a "Type of Payment" before parsing. This field is required.');
+      // Scroll to payment field
+      const paymentField = document.querySelector('[data-payment-search]');
+      if (paymentField) {
+        paymentField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        (paymentField as HTMLInputElement).focus();
+      }
+      return;
+    }
+
     setIsManualProcessing(true);
     setManualError('');
 
@@ -175,14 +218,40 @@ export default function UploadPage() {
         dataToPass.typeOfOperation = selectedCategory;
       }
 
-      // CRITICAL: Ensure amount defaults to debit unless explicitly credit
-      if ((dataToPass.credit ?? 0) > 0 && (dataToPass.debit ?? 0) === 0) {
-        // Only allow credit if there are explicit credit/income keywords in the original input
-        const creditKeywords = /(credit|income|revenue|sales|rental|deposit|received)/i;
-        if (!creditKeywords.test(manualCommand)) {
-          console.log(`[MANUAL] Moving amount from credit to debit (no credit keywords found): ${dataToPass.credit}`);
-          dataToPass.debit = dataToPass.credit ?? 0;
+      // CRITICAL: Add selected payment type from search box (REQUIRED)
+      if (selectedPayment) {
+        console.log(`[MANUAL] Setting payment type from search box: ${selectedPayment}`);
+        dataToPass.typeOfPayment = selectedPayment;
+      }
+
+      // CRITICAL: Auto-detect Revenue categories and ensure they use credit
+      if (dataToPass.typeOfOperation && dataToPass.typeOfOperation.startsWith('Revenue')) {
+        const totalAmount = (dataToPass.debit || 0) + (dataToPass.credit || 0);
+        if (totalAmount > 0 && (dataToPass.debit || 0) > 0) {
+          console.log(`[MANUAL AUTO-CREDIT] Revenue category detected: "${dataToPass.typeOfOperation}" - Moving amount ${totalAmount} to credit`);
+          dataToPass.credit = totalAmount;
+          dataToPass.debit = 0;
+        }
+      } 
+      // CRITICAL: Auto-detect EXP categories and ensure they use debit
+      else if (dataToPass.typeOfOperation && dataToPass.typeOfOperation.startsWith('EXP')) {
+        const totalAmount = (dataToPass.debit || 0) + (dataToPass.credit || 0);
+        if (totalAmount > 0 && (dataToPass.credit || 0) > 0) {
+          console.log(`[MANUAL AUTO-DEBIT] Expense category detected: "${dataToPass.typeOfOperation}" - Moving amount ${totalAmount} to debit`);
+          dataToPass.debit = totalAmount;
           dataToPass.credit = 0;
+        }
+      } 
+      else {
+        // CRITICAL: Ensure amount defaults to debit unless explicitly credit (only for non-Revenue/non-EXP)
+        if ((dataToPass.credit ?? 0) > 0 && (dataToPass.debit ?? 0) === 0) {
+          // Only allow credit if there are explicit credit/income keywords in the original input
+          const creditKeywords = /(credit|income|revenue|sales|rental|deposit|received)/i;
+          if (!creditKeywords.test(manualCommand)) {
+            console.log(`[MANUAL] Moving amount from credit to debit (no credit keywords found): ${dataToPass.credit}`);
+            dataToPass.debit = dataToPass.credit ?? 0;
+            dataToPass.credit = 0;
+          }
         }
       }
 
@@ -194,8 +263,9 @@ export default function UploadPage() {
       const manualId = `manual-${Date.now()}`;
       const encodedData = encodeURIComponent(JSON.stringify(dataToPass));
       
-      // Clear the selected category after processing
+      // Clear the selected category and payment after processing
       setSelectedCategory('');
+      setSelectedPayment('');
       
       router.push(`/review/${manualId}?data=${encodedData}`);
     } catch (err) {
@@ -313,15 +383,35 @@ export default function UploadPage() {
         dataToPass.typeOfOperation = selectedCategory;
       }
 
-      // CRITICAL: Ensure amount defaults to debit unless explicitly credit
-      if ((dataToPass.credit ?? 0) > 0 && (dataToPass.debit ?? 0) === 0) {
-        // Only allow credit if there are explicit credit/income keywords in the OCR text or user comment
-        const textToCheck = `${ocrData.text} ${comment}`.toLowerCase();
-        const creditKeywords = /(credit|income|revenue|sales|rental|deposit|received)/i;
-        if (!creditKeywords.test(textToCheck)) {
-          console.log(`[FILE UPLOAD] Moving amount from credit to debit (no credit keywords found): ${dataToPass.credit}`);
-          dataToPass.debit = dataToPass.credit ?? 0;
+      // CRITICAL: Auto-detect Revenue categories and ensure they use credit
+      if (dataToPass.typeOfOperation && dataToPass.typeOfOperation.startsWith('Revenue')) {
+        const totalAmount = (dataToPass.debit || 0) + (dataToPass.credit || 0);
+        if (totalAmount > 0 && (dataToPass.debit || 0) > 0) {
+          console.log(`[FILE AUTO-CREDIT] Revenue category detected: "${dataToPass.typeOfOperation}" - Moving amount ${totalAmount} to credit`);
+          dataToPass.credit = totalAmount;
+          dataToPass.debit = 0;
+        }
+      } 
+      // CRITICAL: Auto-detect EXP categories and ensure they use debit
+      else if (dataToPass.typeOfOperation && dataToPass.typeOfOperation.startsWith('EXP')) {
+        const totalAmount = (dataToPass.debit || 0) + (dataToPass.credit || 0);
+        if (totalAmount > 0 && (dataToPass.credit || 0) > 0) {
+          console.log(`[FILE AUTO-DEBIT] Expense category detected: "${dataToPass.typeOfOperation}" - Moving amount ${totalAmount} to debit`);
+          dataToPass.debit = totalAmount;
           dataToPass.credit = 0;
+        }
+      } 
+      else {
+        // CRITICAL: Ensure amount defaults to debit unless explicitly credit (only for non-Revenue/non-EXP)
+        if ((dataToPass.credit ?? 0) > 0 && (dataToPass.debit ?? 0) === 0) {
+          // Only allow credit if there are explicit credit/income keywords in the OCR text or user comment
+          const textToCheck = `${ocrData.text} ${comment}`.toLowerCase();
+          const creditKeywords = /(credit|income|revenue|sales|rental|deposit|received)/i;
+          if (!creditKeywords.test(textToCheck)) {
+            console.log(`[FILE UPLOAD] Moving amount from credit to debit (no credit keywords found): ${dataToPass.credit}`);
+            dataToPass.debit = dataToPass.credit ?? 0;
+            dataToPass.credit = 0;
+          }
         }
       }
 
@@ -435,23 +525,6 @@ export default function UploadPage() {
         transition={{ delay: 0.4, type: 'spring', stiffness: 100 }}
         className="mb-6 relative"
       >
-        {/* Backdrop overlay when search is active */}
-        <AnimatePresence>
-          {categorySearch.trim() && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-              onClick={() => {
-                setCategorySearch('');
-                setShowCategoryDropdown(false);
-              }}
-            />
-          )}
-        </AnimatePresence>
-
         {/* Glow effect behind card */}
         <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-status-info/20 rounded-2xl blur-xl opacity-50" />
 
@@ -523,17 +596,13 @@ export default function UploadPage() {
                 Optional
               </span>
             </div>
-            
-            <div className={`relative ${categorySearch.trim() ? 'z-50' : ''}`}>
+
+            <div ref={categoryAnchorRef} className="relative">
               <input
                 type="text"
                 value={categorySearch}
                 onChange={handleCategorySearchChange}
                 onFocus={() => categorySearch.trim() && setShowCategoryDropdown(true)}
-                onBlur={() => {
-                  // Delay hiding to allow clicks on dropdown items
-                  setTimeout(() => setShowCategoryDropdown(false), 150);
-                }}
                 placeholder="Search categories... e.g. 'construction', 'electric', 'salary'"
                 className="w-full px-4 py-2.5 text-sm bg-surface-2 border border-border-light rounded-xl text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/30 transition-all"
               />
@@ -549,49 +618,6 @@ export default function UploadPage() {
                   <X className="w-4 h-4" />
                 </button>
               )}
-              
-              {/* Dropdown with filtered categories */}
-              <AnimatePresence>
-                {showCategoryDropdown && filteredCategories.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 right-0 mt-1 bg-surface-1 border border-border-light rounded-xl shadow-elev-2 max-h-48 overflow-y-auto z-50"
-                  >
-                    {filteredCategories.map((category, index) => (
-                      <motion.button
-                        key={category}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.02 }}
-                        onClick={() => handleCategorySelect(category)}
-                        className="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-surface-2 focus:bg-surface-2 focus:outline-none transition-colors first:rounded-t-xl last:rounded-b-xl border-b border-border-light last:border-b-0"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="flex-1">{category}</span>
-                          <ArrowRight className="w-3 h-3 text-text-tertiary" />
-                        </div>
-                      </motion.button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              
-              {/* No results message */}
-              <AnimatePresence>
-                {showCategoryDropdown && categorySearch.trim() && filteredCategories.length === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute top-full left-0 right-0 mt-1 bg-surface-1 border border-border-light rounded-xl shadow-elev-2 p-4 text-center z-50"
-                  >
-                    <p className="text-sm text-text-tertiary">No categories found for &quot;{categorySearch}&quot;</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
             
             {selectedCategory && (
@@ -620,9 +646,74 @@ export default function UploadPage() {
             className="mt-3"
           >
             <div className="flex items-center gap-2 text-xs text-text-tertiary">
-              <div className="w-1.5 h-1.5 bg-brand-primary rounded-full flex-shrink-0"></div>
+              <div className="w-1.5 h-1.5 bg-brand-primary rounded-full shrink-0"></div>
               <span>
                 Can&apos;t find the right category? Use <span className="text-brand-primary font-medium">&quot;EXP - Other Expenses&quot;</span>
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Type of Payment Search - REQUIRED */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mt-6"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Search className="w-4 h-4 text-status-danger" />
+              <span className="text-sm font-medium text-text-primary">Type of Payment</span>
+              <span className="text-xs px-2 py-0.5 bg-status-danger/20 text-status-danger rounded-full border border-status-danger/30 font-semibold">
+                Required *
+              </span>
+            </div>
+
+            <div ref={paymentAnchorRef} className="relative">
+              <input
+                type="text"
+                value={paymentSearch}
+                onChange={handlePaymentSearchChange}
+                onFocus={() => paymentSearch.trim() && setShowPaymentDropdown(true)}
+                data-payment-search
+                placeholder="Search payment types... e.g. 'cash', 'bank transfer'"
+                className="w-full px-4 py-2.5 text-sm bg-surface-2 border border-border-light rounded-xl text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/30 transition-all"
+              />
+              
+              {paymentSearch && (
+                <button
+                  onClick={() => {
+                    setPaymentSearch('');
+                    setShowPaymentDropdown(false);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            
+            {selectedPayment && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-status-success/20 text-status-success text-xs rounded-full border border-status-success/30"
+              >
+                <CheckCircle2 className="w-3 h-3" />
+                Selected: {selectedPayment}
+                <button
+                  onClick={() => setSelectedPayment('')}
+                  className="ml-1 hover:text-status-success/70 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </motion.div>
+            )}
+
+            {/* Requirement notice */}
+            <div className="flex items-start gap-2 text-xs text-text-tertiary mt-3">
+              <div className="w-1.5 h-1.5 bg-status-danger rounded-full shrink-0 mt-1"></div>
+              <span>
+                You must select a payment type before parsing
               </span>
             </div>
           </motion.div>
@@ -1015,6 +1106,39 @@ export default function UploadPage() {
           </motion.div>
         </>
       )}
+
+      {/* Portal-based dropdowns */}
+      <OverlayDropdownPortal
+        visible={!!categorySearch.trim() && showCategoryDropdown}
+        anchorEl={categoryAnchorRef.current}
+        items={filteredCategories}
+        emptyMessage={`No categories found for "${categorySearch}"`}
+        onSelect={(val) => {
+          handleCategorySelect(val);
+          setShowCategoryDropdown(false);
+          setCategorySearch('');
+        }}
+        onClose={() => {
+          setShowCategoryDropdown(false);
+          setCategorySearch('');
+        }}
+      />
+
+      <OverlayDropdownPortal
+        visible={!!paymentSearch.trim() && showPaymentDropdown}
+        anchorEl={paymentAnchorRef.current}
+        items={filteredPaymentTypes}
+        emptyMessage={`No payment types found for "${paymentSearch}"`}
+        onSelect={(val) => {
+          handlePaymentSelect(val);
+          setShowPaymentDropdown(false);
+          setPaymentSearch('');
+        }}
+        onClose={() => {
+          setShowPaymentDropdown(false);
+          setPaymentSearch('');
+        }}
+      />
     </motion.div>
   );
 }

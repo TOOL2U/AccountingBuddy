@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Upload, Inbox, BarChart3, Settings, Sparkles } from 'lucide-react';
+import { Upload, Inbox, BarChart3, Settings, Sparkles, Wallet } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Navigation() {
@@ -24,6 +24,7 @@ export default function Navigation() {
     { href: '/upload', label: 'Upload', icon: Upload, color: 'from-brand-primary to-status-info' },
     { href: '/inbox', label: 'Inbox', icon: Inbox, color: 'from-status-info to-brand-primary' },
     { href: '/pnl', label: 'P&L', icon: BarChart3, color: 'from-status-success to-status-info' },
+    { href: '/balance', label: 'Balance', icon: Wallet, color: 'from-status-warning to-status-success' },
     { href: '/admin', label: 'Admin', icon: Settings, color: 'from-text-secondary to-text-tertiary' },
   ];
 
@@ -32,44 +33,44 @@ export default function Navigation() {
       style={{
         backdropFilter: useTransform(navBlur, (v) => `blur(${v}px)`),
       }}
-      className="sticky top-0 z-50 border-b border-border-light/50 bg-surface-0/80 backdrop-blur-xl"
+      className="sticky top-0 z-50 border-b border-slate-700/20 bg-black/60 backdrop-blur-xl"
     >
-      {/* Animated gradient line at top */}
+      {/* Subtle gradient line at top */}
       <motion.div
-        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-primary to-transparent"
+        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-500/20 to-transparent"
         animate={{
           backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
         }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
         style={{ backgroundSize: '200% 100%' }}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo/Title - Enhanced with glow */}
+          {/* Logo/Title - Very subtle */}
           <Link href="/upload" className="flex items-center gap-3 group relative">
-            {/* Glow effect on hover */}
+            {/* Very subtle hover glow */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-status-info/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              className="absolute inset-0 bg-slate-400/5 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"
               style={{ transform: 'scale(1.5)' }}
             />
 
-            {/* Logo icon with animation */}
+            {/* Logo icon - minimal color */}
             <motion.div
-              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.4 }}
               className="relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-primary to-status-info rounded-lg blur-md opacity-50" />
-              <div className="relative p-2 bg-gradient-to-br from-brand-primary to-status-info rounded-lg">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="relative p-2 bg-slate-800/30 border border-slate-600/20 rounded-lg backdrop-blur-sm">
+                <Sparkles className="w-5 h-5 text-slate-400 group-hover:text-slate-300 transition-colors" />
               </div>
             </motion.div>
 
-            {/* Title with gradient */}
+            {/* Title - subtle color */}
             <div className="relative">
               <motion.span
-                className="text-lg font-extrabold bg-gradient-to-r from-brand-primary via-status-info to-brand-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient"
+                className="text-lg font-bold text-slate-300 group-hover:text-slate-200 transition-colors"
               >
                 Accounting Buddy
               </motion.span>
@@ -91,50 +92,55 @@ export default function Navigation() {
                   className="relative group"
                 >
                   <motion.div
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.4 }}
                     className={`
-                      relative px-4 py-2 rounded-xl transition-all duration-200
+                      relative px-4 py-2 rounded-xl transition-all duration-300
                       ${active
-                        ? 'bg-surface-2 text-text-primary'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-1'
+                        ? 'text-slate-200'
+                        : 'text-slate-500 hover:text-slate-300'
                       }
                     `}
                   >
-                    {/* Glow effect on hover */}
-                    {(hoveredItem === item.href || active) && (
+                    {/* Subtle glow on hover only */}
+                    {hoveredItem === item.href && !active && (
                       <motion.div
-                        layoutId={active ? 'activeGlow' : 'hoverGlow'}
-                        className={`absolute inset-0 bg-gradient-to-r ${item.color} opacity-10 rounded-xl blur-sm`}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        className="absolute inset-0 bg-slate-700/10 rounded-xl"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4 }}
                       />
                     )}
 
                     {/* Content */}
                     <span className="relative flex items-center gap-2">
-                      <Icon className={`w-4 h-4 ${active ? 'text-brand-primary' : ''}`} />
+                      <Icon className={`w-4 h-4 ${active ? 'text-slate-300' : ''}`} />
                       <span className="hidden sm:inline text-sm font-medium">
                         {item.label}
                       </span>
                     </span>
 
-                    {/* Active indicator - animated underline */}
+                    {/* Active indicator - very subtle underline */}
                     {active && (
                       <motion.div
                         layoutId="activeIndicator"
-                        className={`absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r ${item.color} rounded-full`}
-                        transition={{ type: 'spring', stiffness: 380, damping: 40 }}
+                        className="absolute bottom-0 left-2 right-2 h-0.5 bg-slate-400/40 rounded-full"
+                        transition={{ type: 'spring', stiffness: 300, damping: 35 }}
                       />
                     )}
 
-                    {/* Hover shine effect */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent rounded-xl"
-                      animate={hoveredItem === item.href ? {
-                        x: ['-100%', '100%'],
-                      } : {}}
-                      transition={{ duration: 0.6, ease: 'easeInOut' }}
-                    />
+                    {/* Subtle hover glow */}
+                    {hoveredItem === item.href && (
+                      <motion.div
+                        className="absolute inset-0 shadow-[0_0_12px_rgba(148,163,184,0.06)] rounded-xl pointer-events-none"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                      />
+                    )}
                   </motion.div>
                 </Link>
               );
@@ -143,8 +149,8 @@ export default function Navigation() {
         </div>
       </div>
 
-      {/* Bottom glow line */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-light to-transparent" />
+      {/* Subtle bottom line */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-slate-700/20" />
     </motion.nav>
   );
 }

@@ -1,15 +1,21 @@
 {
   "validationRow": 20,
   "options": {
-    "property": [
-      "⚠️  Range-based validation detected - requires separate fetch"
-    ],
-    "typeOfOperation": [
-      "⚠️  Range-based validation detected - requires separate fetch"
-    ],
-    "typeOfPayment": [
-      "⚠️  Range-based validation detected - requires separate fetch"
-    ]
+    "property": {
+      "type": "range",
+      "range": "=Data!$A$39:$A$44",
+      "options": []
+    },
+    "typeOfOperation": {
+      "type": "range",
+      "range": "=Data!$A$4:$A$35",
+      "options": []
+    },
+    "typeOfPayment": {
+      "type": "range",
+      "range": "=Data!$A$72:$A$74",
+      "options": []
+    }
   },
-  "inspectedAt": "2025-10-25T04:55:21.556Z"
+  "inspectedAt": "2025-10-29T07:14:40.571Z"
 }

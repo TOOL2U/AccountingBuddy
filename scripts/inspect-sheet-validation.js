@@ -116,10 +116,15 @@ async function inspectWithSheetId(spreadsheetId) {
         
         // Column E - Property
         if (colE.dataValidation) {
-          const options = extractValidationOptions(colE.dataValidation);
-          validationData.property = options;
+          const result = extractValidationOptions(colE.dataValidation);
+          validationData.property = result;
           console.log(`   📍 Column E (Property):`);
-          console.log(`      Options (${options.length}): ${options.join(', ')}`);
+          console.log(`      Type: ${result.type}`);
+          if (result.options && result.options.length > 0) {
+            console.log(`      Options (${result.options.length}): ${result.options.join(', ')}`);
+          } else if (result.range) {
+            console.log(`      Range: ${result.range}`);
+          }
           console.log('');
         } else {
           console.log(`   ⚠️  Column E (Property): No validation found`);
@@ -128,11 +133,16 @@ async function inspectWithSheetId(spreadsheetId) {
         
         // Column F - Type of Operation
         if (colF.dataValidation) {
-          const options = extractValidationOptions(colF.dataValidation);
-          validationData.typeOfOperation = options;
+          const result = extractValidationOptions(colF.dataValidation);
+          validationData.typeOfOperation = result;
           console.log(`   📍 Column F (Type of Operation):`);
-          console.log(`      Options (${options.length}):`);
-          options.forEach(opt => console.log(`      - ${opt}`));
+          console.log(`      Type: ${result.type}`);
+          if (result.options && result.options.length > 0) {
+            console.log(`      Options (${result.options.length}):`);
+            result.options.forEach(opt => console.log(`      - ${opt}`));
+          } else if (result.range) {
+            console.log(`      Range: ${result.range}`);
+          }
           console.log('');
         } else {
           console.log(`   ⚠️  Column F (Type of Operation): No validation found`);
@@ -141,10 +151,15 @@ async function inspectWithSheetId(spreadsheetId) {
         
         // Column G - Type of Payment
         if (colG.dataValidation) {
-          const options = extractValidationOptions(colG.dataValidation);
-          validationData.typeOfPayment = options;
+          const result = extractValidationOptions(colG.dataValidation);
+          validationData.typeOfPayment = result;
           console.log(`   📍 Column G (Type of Payment):`);
-          console.log(`      Options (${options.length}): ${options.join(', ')}`);
+          console.log(`      Type: ${result.type}`);
+          if (result.options && result.options.length > 0) {
+            console.log(`      Options (${result.options.length}): ${result.options.join(', ')}`);
+          } else if (result.range) {
+            console.log(`      Range: ${result.range}`);
+          }
           console.log('');
         } else {
           console.log(`   ⚠️  Column G (Type of Payment): No validation found`);
@@ -169,9 +184,9 @@ async function inspectWithSheetId(spreadsheetId) {
       console.log('✅ Inspection complete!\n');
       console.log('📊 Summary:');
       console.log(`   Validation Row: ${validationRow}`);
-      console.log(`   Property options: ${validationData.property.length}`);
-      console.log(`   Type of Operation options: ${validationData.typeOfOperation.length}`);
-      console.log(`   Type of Payment options: ${validationData.typeOfPayment.length}`);
+      console.log(`   Property: ${validationData.property.type} - ${validationData.property.options?.length || 0} options`);
+      console.log(`   Type of Operation: ${validationData.typeOfOperation.type} - ${validationData.typeOfOperation.options?.length || 0} options`);
+      console.log(`   Type of Payment: ${validationData.typeOfPayment.type} - ${validationData.typeOfPayment.options?.length || 0} options`);
       console.log('');
       
       // Save to file for reference

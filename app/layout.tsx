@@ -17,9 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-surface-0 text-text-primary">
+      <body className="bg-black text-white relative">
         <Navigation />
-        <main className="min-h-screen">
+        <main className="min-h-screen relative z-10">
           <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8">
             {children}
           </div>
@@ -28,4 +28,3 @@ export default function RootLayout({
     </html>
   );
 }
-

@@ -12,17 +12,17 @@ export default function Card({
   className = '',
   ...props
 }: CardProps) {
-  const baseClasses = 'bg-surface-1 border border-border-light rounded-2xl shadow-elev-1 p-6 transition-all duration-200';
-  const hoverClasses = hoverable ? 'hover:bg-surface-2 hover:border-border-medium hover:shadow-elev-2 cursor-pointer' : '';
+  const baseClasses = 'bg-slate-900/20 backdrop-blur-md border border-slate-700/20 rounded-2xl shadow-[0_0_15px_rgba(0,0,0,0.3)] p-6 transition-all duration-300';
+  const hoverClasses = hoverable ? 'hover:border-slate-600/30 hover:shadow-[0_0_20px_rgba(148,163,184,0.06)] cursor-pointer' : '';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
       whileHover={hoverable ? {
         y: -4,
-        transition: { type: 'spring', stiffness: 300, damping: 20 }
+        transition: { type: 'spring', stiffness: 200, damping: 25 }
       } : {}}
       className={`${baseClasses} ${hoverClasses} ${className}`}
       {...props}

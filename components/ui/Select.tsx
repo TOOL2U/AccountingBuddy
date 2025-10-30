@@ -24,11 +24,11 @@ export default function Select({
       )}
       <select
         className={`
-          w-full px-4 py-2.5 bg-surface-1 border border-border-light rounded-xl
-          text-text-primary
-          focus:outline-none focus:ring-2 focus:ring-brand-primary/60 focus:border-transparent
-          transition-all duration-200 appearance-none cursor-pointer
-          ${error ? 'border-status-danger focus:ring-status-danger/60' : ''}
+          w-full px-4 py-2.5 bg-slate-900/30 border border-slate-700/30 rounded-xl
+          text-slate-200
+          focus:outline-none focus:border-slate-600/50 focus:bg-slate-900/40
+          transition-all duration-400 appearance-none cursor-pointer backdrop-blur-sm
+          ${error ? 'border-red-500/40 focus:border-red-500/60' : ''}
           ${className}
         `}
         {...props}

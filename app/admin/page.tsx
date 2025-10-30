@@ -2,29 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Settings, 
-  Database, 
-  Activity, 
-  Zap, 
-  Download, 
-  RefreshCw, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Settings,
+  Database,
+  Activity,
+  Zap,
+  Download,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   TrendingUp,
-  FileText,
   Sparkles,
   BarChart3,
-  Inbox,
-  Upload,
   Server,
-  Eye,
-  Trash2
+  Eye
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 
 interface SystemStats {
   totalEntries: number;
@@ -58,6 +53,40 @@ export default function AdminPage() {
   const [showNamedRanges, setShowNamedRanges] = useState(false);
   const [isLoadingRanges, setIsLoadingRanges] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // OCR Test
+  const [isTestingOCR, setIsTestingOCR] = useState(false);
+  const [ocrResponse, setOcrResponse] = useState('');
+  const [ocrFile, setOcrFile] = useState<File | null>(null);
+
+  // AI Extraction Test
+  const [isTestingExtraction, setIsTestingExtraction] = useState(false);
+  const [extractionResponse, setExtractionResponse] = useState('');
+  const [extractionText, setExtractionText] = useState('');
+
+  // Balance Tests
+  const [isTestingBalance, setIsTestingBalance] = useState(false);
+  const [balanceResponse, setBalanceResponse] = useState('');
+  const [balanceFile, setBalanceFile] = useState<File | null>(null);
+
+  // Property/Person Test
+  const [isTestingPropertyPerson, setIsTestingPropertyPerson] = useState(false);
+  const [propertyPersonResponse, setPropertyPersonResponse] = useState('');
+  const [propertyPersonPeriod, setPropertyPersonPeriod] = useState<'month' | 'year'>('month');
+
+  // Delete Entry Test
+  const [isTestingDelete, setIsTestingDelete] = useState(false);
+  const [deleteResponse, setDeleteResponse] = useState('');
+  const [deleteRowNumber, setDeleteRowNumber] = useState('');
+
+  // Overhead Expenses Test
+  const [isTestingOverhead, setIsTestingOverhead] = useState(false);
+  const [overheadResponse, setOverheadResponse] = useState('');
+  const [overheadPeriod, setOverheadPeriod] = useState<'month' | 'year'>('month');
+
+  // Running Balance Test
+  const [isTestingRunningBalance, setIsTestingRunningBalance] = useState(false);
+  const [runningBalanceResponse, setRunningBalanceResponse] = useState('');
 
   const CORRECT_PIN = '1234';
 
@@ -130,7 +159,7 @@ export default function AdminPage() {
         month: new Date().toLocaleString('en-US', { month: 'short' }),
         year: new Date().getFullYear().toString(),
         property: 'Lanna House',
-        typeOfOperation: 'EXPENSES',
+        typeOfOperation: 'EXP - Other Expenses',
         typeOfPayment: 'Cash',
         detail: 'Admin panel webhook test',
         ref: 'ADMIN-TEST-' + Date.now(),
@@ -240,6 +269,299 @@ export default function AdminPage() {
       }
     } catch (error) {
       showToast('Failed to export data', 'error');
+    }
+  };
+
+  // OCR Test Handler
+  const handleTestOCR = async () => {
+    if (!ocrFile) {
+      showToast('Please select an image file', 'error');
+      return;
+    }
+
+    setIsTestingOCR(true);
+    setOcrResponse('Testing OCR...');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', ocrFile);
+
+      const response = await fetch('/api/ocr', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      setOcrResponse(JSON.stringify(data, null, 2));
+
+      if (data.text) {
+        showToast('OCR test successful!', 'success');
+      } else {
+        showToast('OCR test completed with warnings', 'error');
+      }
+    } catch (error) {
+      console.error('OCR test error:', error);
+      setOcrResponse(`Error: ${error}`);
+      showToast('OCR test failed', 'error');
+    } finally {
+      setIsTestingOCR(false);
+    }
+  };
+
+  // AI Extraction Test Handler
+  const handleTestExtraction = async () => {
+    if (!extractionText.trim()) {
+      showToast('Please enter OCR text to extract', 'error');
+      return;
+    }
+
+    setIsTestingExtraction(true);
+    setExtractionResponse('Testing AI extraction...');
+
+    try {
+      const response = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: extractionText }),
+      });
+
+      const data = await response.json();
+      setExtractionResponse(JSON.stringify(data, null, 2));
+
+      if (data.day && data.typeOfOperation) {
+        showToast('AI extraction test successful!', 'success');
+      } else {
+        showToast('AI extraction completed with warnings', 'error');
+      }
+    } catch (error) {
+      console.error('Extraction test error:', error);
+      setExtractionResponse(`Error: ${error}`);
+      showToast('AI extraction test failed', 'error');
+    } finally {
+      setIsTestingExtraction(false);
+    }
+  };
+
+  // Balance Save Test Handler
+  const handleTestBalanceSave = async () => {
+    setIsTestingBalance(true);
+    setBalanceResponse('Testing balance save...');
+
+    try {
+      const testData = {
+        bankBalance: 50000,
+        cashBalance: 5000,
+        note: 'Admin panel test - ' + new Date().toISOString(),
+      };
+
+      const response = await fetch('/api/balance/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testData),
+      });
+
+      const data = await response.json();
+      setBalanceResponse(JSON.stringify(data, null, 2));
+
+      if (data.success) {
+        showToast('Balance save test successful!', 'success');
+      } else {
+        showToast('Balance save test failed', 'error');
+      }
+    } catch (error) {
+      console.error('Balance save test error:', error);
+      setBalanceResponse(`Error: ${error}`);
+      showToast('Balance save test failed', 'error');
+    } finally {
+      setIsTestingBalance(false);
+    }
+  };
+
+  // Balance Get Test Handler
+  const handleTestBalanceGet = async () => {
+    setIsTestingBalance(true);
+    setBalanceResponse('Testing balance get...');
+
+    try {
+      const response = await fetch('/api/balance/get', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+      setBalanceResponse(JSON.stringify(data, null, 2));
+
+      if (data.bankBalance !== undefined) {
+        showToast('Balance get test successful!', 'success');
+      } else {
+        showToast('Balance get test failed', 'error');
+      }
+    } catch (error) {
+      console.error('Balance get test error:', error);
+      setBalanceResponse(`Error: ${error}`);
+      showToast('Balance get test failed', 'error');
+    } finally {
+      setIsTestingBalance(false);
+    }
+  };
+
+  // Balance OCR Test Handler
+  const handleTestBalanceOCR = async () => {
+    if (!balanceFile) {
+      showToast('Please select a bank screenshot', 'error');
+      return;
+    }
+
+    setIsTestingBalance(true);
+    setBalanceResponse('Testing balance OCR...');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', balanceFile);
+
+      const response = await fetch('/api/balance/ocr', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      setBalanceResponse(JSON.stringify(data, null, 2));
+
+      if (data.balance !== undefined) {
+        showToast('Balance OCR test successful!', 'success');
+      } else {
+        showToast('Balance OCR test completed with warnings', 'error');
+      }
+    } catch (error) {
+      console.error('Balance OCR test error:', error);
+      setBalanceResponse(`Error: ${error}`);
+      showToast('Balance OCR test failed', 'error');
+    } finally {
+      setIsTestingBalance(false);
+    }
+  };
+
+  // Property/Person Test Handler
+  const handleTestPropertyPerson = async () => {
+    setIsTestingPropertyPerson(true);
+    setPropertyPersonResponse('Testing property/person details...');
+
+    try {
+      const response = await fetch('/api/pnl/property-person', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ period: propertyPersonPeriod }),
+      });
+
+      const data = await response.json();
+      setPropertyPersonResponse(JSON.stringify(data, null, 2));
+
+      if (data.ok) {
+        showToast('Property/Person test successful!', 'success');
+      } else {
+        showToast('Property/Person test failed', 'error');
+      }
+    } catch (error) {
+      console.error('Property/Person test error:', error);
+      setPropertyPersonResponse(`Error: ${error}`);
+      showToast('Property/Person test failed', 'error');
+    } finally {
+      setIsTestingPropertyPerson(false);
+    }
+  };
+
+  // Delete Entry Test Handler
+  const handleTestDelete = async () => {
+    if (!deleteRowNumber.trim()) {
+      showToast('Please enter a row number', 'error');
+      return;
+    }
+
+    const rowNum = parseInt(deleteRowNumber);
+    if (isNaN(rowNum) || rowNum < 2) {
+      showToast('Please enter a valid row number (>= 2)', 'error');
+      return;
+    }
+
+    setIsTestingDelete(true);
+    setDeleteResponse('Testing delete entry...');
+
+    try {
+      const response = await fetch('/api/inbox', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rowNumber: rowNum }),
+      });
+
+      const data = await response.json();
+      setDeleteResponse(JSON.stringify(data, null, 2));
+
+      if (data.ok) {
+        showToast('Delete test successful!', 'success');
+      } else {
+        showToast('Delete test failed', 'error');
+      }
+    } catch (error) {
+      console.error('Delete test error:', error);
+      setDeleteResponse(`Error: ${error}`);
+      showToast('Delete test failed', 'error');
+    } finally {
+      setIsTestingDelete(false);
+    }
+  };
+
+  // Overhead Expenses Test Handler
+  const handleTestOverhead = async () => {
+    setIsTestingOverhead(true);
+    setOverheadResponse('Testing overhead expenses details...');
+
+    try {
+      const response = await fetch('/api/pnl/overhead-expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ period: overheadPeriod }),
+      });
+
+      const data = await response.json();
+      setOverheadResponse(JSON.stringify(data, null, 2));
+
+      if (data.ok) {
+        showToast('Overhead expenses test successful!', 'success');
+      } else {
+        showToast('Overhead expenses test failed', 'error');
+      }
+    } catch (error) {
+      console.error('Overhead expenses test error:', error);
+      setOverheadResponse(`Error: ${error}`);
+      showToast('Overhead expenses test failed', 'error');
+    } finally {
+      setIsTestingOverhead(false);
+    }
+  };
+
+  // Running Balance Test Handler
+  const handleTestRunningBalance = async () => {
+    setIsTestingRunningBalance(true);
+    setRunningBalanceResponse('Testing running balance calculation...');
+
+    try {
+      const response = await fetch('/api/balance/by-property', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+      setRunningBalanceResponse(JSON.stringify(data, null, 2));
+
+      if (data.ok) {
+        showToast('Running balance test successful!', 'success');
+      } else {
+        showToast('Running balance test failed', 'error');
+      }
+    } catch (error) {
+      console.error('Running balance test error:', error);
+      setRunningBalanceResponse(`Error: ${error}`);
+      showToast('Running balance test failed', 'error');
+    } finally {
+      setIsTestingRunningBalance(false);
     }
   };
 
@@ -405,7 +727,7 @@ export default function AdminPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="max-w-7xl mx-auto px-4 py-12"
+      className="max-w-7xl mx-auto px-4 py-12 page-admin"
     >
       {/* Header with stunning design */}
       <div className="mb-8 text-center relative">
@@ -750,6 +1072,369 @@ export default function AdminPage() {
             )}
           </Button>
         </Card>
+      </div>
+
+      {/* New Test Cards Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
+          <Zap className="w-6 h-6 text-brand-primary" />
+          Feature Tests
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* OCR Test Card */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-gradient-to-br from-status-info/20 to-brand-primary/20 rounded-xl">
+                <Eye className="w-6 h-6 text-status-info" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-text-primary">OCR Test</h3>
+                <p className="text-xs text-text-secondary">Test Google Vision API</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setOcrFile(e.target.files?.[0] || null)}
+                className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer"
+              />
+              <Button
+                onClick={handleTestOCR}
+                disabled={isTestingOCR || !ocrFile}
+                variant="secondary"
+                size="sm"
+                className="w-full"
+              >
+                {isTestingOCR ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4 mr-2" />
+                    Test OCR
+                  </>
+                )}
+              </Button>
+              {ocrResponse && (
+                <pre className="text-xs bg-surface-2 p-3 rounded-lg overflow-auto max-h-40 text-text-secondary">
+                  {ocrResponse}
+                </pre>
+              )}
+            </div>
+          </Card>
+
+          {/* AI Extraction Test Card */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-gradient-to-br from-status-success/20 to-brand-primary/20 rounded-xl">
+                <Zap className="w-6 h-6 text-status-success" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-text-primary">AI Extraction Test</h3>
+                <p className="text-xs text-text-secondary">Test OpenAI GPT-4o</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <textarea
+                value={extractionText}
+                onChange={(e) => setExtractionText(e.target.value)}
+                placeholder="Paste OCR text here..."
+                className="w-full h-24 px-3 py-2 bg-surface-2 border border-border-light rounded-lg text-sm text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+              />
+              <Button
+                onClick={handleTestExtraction}
+                disabled={isTestingExtraction || !extractionText.trim()}
+                variant="secondary"
+                size="sm"
+                className="w-full"
+              >
+                {isTestingExtraction ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Test Extraction
+                  </>
+                )}
+              </Button>
+              {extractionResponse && (
+                <pre className="text-xs bg-surface-2 p-3 rounded-lg overflow-auto max-h-40 text-text-secondary">
+                  {extractionResponse}
+                </pre>
+              )}
+            </div>
+          </Card>
+
+          {/* Balance Tests Card */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-gradient-to-br from-status-warning/20 to-brand-primary/20 rounded-xl">
+                <TrendingUp className="w-6 h-6 text-status-warning" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-text-primary">Balance Tests</h3>
+                <p className="text-xs text-text-secondary">Test balance feature</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={handleTestBalanceSave}
+                  disabled={isTestingBalance}
+                  variant="secondary"
+                  size="sm"
+                >
+                  {isTestingBalance ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    'Save'
+                  )}
+                </Button>
+                <Button
+                  onClick={handleTestBalanceGet}
+                  disabled={isTestingBalance}
+                  variant="secondary"
+                  size="sm"
+                >
+                  {isTestingBalance ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    'Get'
+                  )}
+                </Button>
+              </div>
+
+              <div>
+                <label className="text-xs text-text-secondary mb-2 block">Bank Screenshot OCR:</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setBalanceFile(e.target.files?.[0] || null)}
+                  className="w-full text-xs text-text-secondary file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer mb-2"
+                />
+                <Button
+                  onClick={handleTestBalanceOCR}
+                  disabled={isTestingBalance || !balanceFile}
+                  variant="secondary"
+                  size="sm"
+                  className="w-full"
+                >
+                  {isTestingBalance ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-4 h-4 mr-2" />
+                      Test OCR
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {balanceResponse && (
+                <pre className="text-xs bg-surface-2 p-3 rounded-lg overflow-auto max-h-40 text-text-secondary">
+                  {balanceResponse}
+                </pre>
+              )}
+            </div>
+          </Card>
+
+          {/* Property/Person Test Card */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-gradient-to-br from-brand-primary/20 to-status-info/20 rounded-xl">
+                <Activity className="w-6 h-6 text-brand-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-text-primary">Property/Person Test</h3>
+                <p className="text-xs text-text-secondary">Test expense breakdown</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <select
+                value={propertyPersonPeriod}
+                onChange={(e) => setPropertyPersonPeriod(e.target.value as 'month' | 'year')}
+                className="w-full px-3 py-2 bg-surface-2 border border-border-light rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+              >
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+              </select>
+              <Button
+                onClick={handleTestPropertyPerson}
+                disabled={isTestingPropertyPerson}
+                variant="secondary"
+                size="sm"
+                className="w-full"
+              >
+                {isTestingPropertyPerson ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  <>
+                    <Activity className="w-4 h-4 mr-2" />
+                    Test
+                  </>
+                )}
+              </Button>
+              {propertyPersonResponse && (
+                <pre className="text-xs bg-surface-2 p-3 rounded-lg overflow-auto max-h-40 text-text-secondary">
+                  {propertyPersonResponse}
+                </pre>
+              )}
+            </div>
+          </Card>
+
+          {/* Delete Entry Test Card */}
+          <Card className="lg:col-span-2">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-gradient-to-br from-status-danger/20 to-brand-primary/20 rounded-xl">
+                <XCircle className="w-6 h-6 text-status-danger" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-text-primary">Delete Entry Test</h3>
+                <p className="text-xs text-text-secondary">Test entry deletion (use with caution)</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <input
+                type="number"
+                value={deleteRowNumber}
+                onChange={(e) => setDeleteRowNumber(e.target.value)}
+                placeholder="Row number (e.g., 10)"
+                min="2"
+                className="w-full px-3 py-2 bg-surface-2 border border-border-light rounded-lg text-sm text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+              />
+              <Button
+                onClick={handleTestDelete}
+                disabled={isTestingDelete || !deleteRowNumber.trim()}
+                variant="danger"
+                size="sm"
+                className="w-full"
+              >
+                {isTestingDelete ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Test Delete
+                  </>
+                )}
+              </Button>
+              {deleteResponse && (
+                <pre className="text-xs bg-surface-2 p-3 rounded-lg overflow-auto max-h-40 text-text-secondary">
+                  {deleteResponse}
+                </pre>
+              )}
+            </div>
+          </Card>
+
+          {/* Overhead Expenses Test Card */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-gradient-to-br from-status-warning/20 to-brand-primary/20 rounded-xl">
+                <BarChart3 className="w-6 h-6 text-status-warning" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-text-primary">Overhead Expenses Test</h3>
+                <p className="text-xs text-text-secondary">Test overhead expenses breakdown (V7.1)</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <select
+                value={overheadPeriod}
+                onChange={(e) => setOverheadPeriod(e.target.value as 'month' | 'year')}
+                className="w-full px-3 py-2 bg-surface-2 border border-border-light rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+              >
+                <option value="month">Month</option>
+                <option value="year">Year</option>
+              </select>
+              <Button
+                onClick={handleTestOverhead}
+                disabled={isTestingOverhead}
+                variant="secondary"
+                size="sm"
+                className="w-full"
+              >
+                {isTestingOverhead ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  <>
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Test Overhead
+                  </>
+                )}
+              </Button>
+              {overheadResponse && (
+                <pre className="text-xs bg-surface-2 p-3 rounded-lg overflow-auto max-h-40 text-text-secondary">
+                  {overheadResponse}
+                </pre>
+              )}
+            </div>
+          </Card>
+
+          {/* Running Balance Test Card */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-gradient-to-br from-status-success/20 to-brand-primary/20 rounded-xl">
+                <TrendingUp className="w-6 h-6 text-status-success" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-text-primary">Running Balance Test</h3>
+                <p className="text-xs text-text-secondary">Test automatic balance calculation</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                onClick={handleTestRunningBalance}
+                disabled={isTestingRunningBalance}
+                variant="secondary"
+                size="sm"
+                className="w-full"
+              >
+                {isTestingRunningBalance ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  <>
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    Test Running Balance
+                  </>
+                )}
+              </Button>
+              {runningBalanceResponse && (
+                <pre className="text-xs bg-surface-2 p-3 rounded-lg overflow-auto max-h-40 text-text-secondary">
+                  {runningBalanceResponse}
+                </pre>
+              )}
+            </div>
+          </Card>
+        </div>
       </div>
 
       {/* Named Ranges Modal */}

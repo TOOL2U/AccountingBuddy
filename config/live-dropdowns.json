@@ -4,18 +4,17 @@
     "Alesia House",
     "Lanna House",
     "Parents House",
-    "Shaun Ducker"
+    "Shaun Ducker",
+    "Maria Ren"
   ],
   "typeOfOperation": [
     "Revenue - Commision",
     "Revenue - Sales",
     "Revenue - Services",
     "Revenue - Rental Income",
-    "Fixed Costs",
     "EXP - Utilities - Gas",
     "EXP - Utilities - Water",
     "EXP - Utilities  - Electricity",
-    "EXPENSES",
     "EXP - Administration & General - License & Certificates",
     "EXP - Construction - Structure",
     "EXP - Construction - Overheads/General/Unclassified",
@@ -38,14 +37,36 @@
     "EXP - Other Expenses"
   ],
   "typeOfPayment": [
-    "Credit card",
-    "Bank transfer"
+    "Bank Transfer - Bangkok Bank - Shaun Ducker",
+    "Bank Transfer - Bangkok Bank - Maria Ren",
+    "Bank transfer - Krung Thai Bank - Family Account",
+    "Cash"
   ],
-  "validationRanges": {
-    "property": "Data!$A$39:$A$44",
-    "typeOfOperation": "Data!$A$4:$A$35",
-    "typeOfPayment": "Data!$A$72:$A$74"
+  "extractedAt": "2025-10-29T08:35:32.774Z",
+  "source": "validation_ranges",
+  "ranges": {
+    "property": "Data!A38:A43",
+    "typeOfOperation": "Data!A4:A35",
+    "typeOfPayment": "Data!A46:A49"
   },
-  "fetchedAt": "2025-10-28T03:54:01.196Z",
-  "source": "google_sheets_api_cleaned"
+  "filtered": {
+    "headers": [
+      "REVENUES",
+      "Fixed Costs",
+      "FIXED COSTS",
+      "EXPENSES",
+      "Property"
+    ],
+    "testValues": [
+      "test",
+      "TEST",
+      "Test",
+      "demo",
+      "DEMO",
+      "Demo",
+      "sample",
+      "SAMPLE",
+      "Sample"
+    ]
+  }
 }
