@@ -1443,17 +1443,17 @@ function createPnLNamedRanges() {
     },
     {
       name: "Month_Total_Overheads",
-      cell: monthColumnLetter + "46",
+      cell: monthColumnLetter + "52",
       description: "This Month Total Overhead Expense (" + currentMonth + ")"
     },
     {
       name: "Month_GOP",
-      cell: monthColumnLetter + "49",
+      cell: monthColumnLetter + "55",
       description: "This Month Gross Operating Profit (" + currentMonth + ")"
     },
     {
       name: "Month_EBITDA_Margin",
-      cell: monthColumnLetter + "50",
+      cell: monthColumnLetter + "56",
       description: "This Month EBITDA Margin (" + currentMonth + ")"
     },
     
@@ -1470,17 +1470,17 @@ function createPnLNamedRanges() {
     },
     {
       name: "Year_Total_Overheads",
-      cell: "Q46",
+      cell: "Q52",
       description: "Year Total Overhead Expense"
     },
     {
       name: "Year_GOP",
-      cell: "Q49",
+      cell: "Q55",
       description: "Year Gross Operating Profit"
     },
     {
       name: "Year_EBITDA_Margin",
-      cell: "Q50",
+      cell: "Q56",
       description: "Year EBITDA Margin"
     }
   ];

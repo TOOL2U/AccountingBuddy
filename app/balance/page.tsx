@@ -385,7 +385,7 @@ export default function BalancePage() {
     <div className="min-h-screen bg-surface-0 pb-24 page-balance">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-surface-0/80 backdrop-blur-xl border-b border-border-light">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="max-w-4xl mx-auto px-2 md:px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-brand-primary to-status-info bg-clip-text text-transparent">
@@ -409,7 +409,7 @@ export default function BalancePage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto px-2 md:px-4 py-6 space-y-6">
         {/* Bank Balance Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

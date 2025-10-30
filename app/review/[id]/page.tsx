@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { cacheVendorCategory } from '@/utils/vendorCache';
@@ -11,6 +11,7 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Toast from '@/components/ui/Toast';
+import { X, Search } from 'lucide-react';
 
 export default function ReviewPage({ params }: any) {
   const router = useRouter();
@@ -21,10 +22,26 @@ export default function ReviewPage({ params }: any) {
   const [isSending, setIsSending] = useState(false);
   const [categoryError, setCategoryError] = useState(false);
 
+  // Search state for filtering
+  const [categorySearch, setCategorySearch] = useState<string>('');
+  const [paymentSearch, setPaymentSearch] = useState<string>('');
+
+  // Refs for select elements
+  const categorySelectRef = useRef<HTMLSelectElement>(null);
+
   const handleCloseToast = () => setShowToast(false);
 
   // Get dropdown options
   const options = getOptions();
+
+  // Filter categories based on search
+  const filteredCategories = options.typeOfOperation
+    .filter(op => !['FIXED COSTS', 'Fixed Costs', 'EXPENSES', 'REVENUES', 'Property'].includes(op))
+    .filter(op => categorySearch.trim() === '' || op.toLowerCase().includes(categorySearch.toLowerCase()));
+
+  // Filter payment types based on search
+  const filteredPaymentTypes = options.typeOfPayment
+    .filter(payment => paymentSearch.trim() === '' || payment.toLowerCase().includes(paymentSearch.toLowerCase()));
 
   // Form data state - expanded schema for Accounting Buddy P&L 2025
   const [formData, setFormData] = useState({
@@ -255,7 +272,7 @@ export default function ReviewPage({ params }: any) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="max-w-2xl mx-auto px-4 py-12 page-upload"
+      className="max-w-2xl mx-auto px-2 md:px-4 py-12 page-upload"
     >
       {/* Header */}
       <div className="text-center mb-8">
@@ -361,27 +378,84 @@ export default function ReviewPage({ params }: any) {
                 <Badge variant="danger">❌ Required</Badge>
               )}
             </div>
-            <select
-              id="typeOfOperation"
-              name="typeOfOperation"
-              value={formData.typeOfOperation}
-              onChange={handleChange}
-              className={`w-full px-4 py-2.5 bg-surface-1 border rounded-xl text-text-primary focus:outline-none focus:ring-2 transition-all duration-200 appearance-none cursor-pointer ${
-                categoryError 
-                  ? 'border-red-500 focus:ring-red-500/60 focus:border-red-500 bg-red-50' 
-                  : 'border-border-light focus:ring-brand-primary/60 focus:border-transparent'
-              }`}
-              required
-            >
-              <option value="">Select operation type</option>
-              {options.typeOfOperation
-                .filter(op => !['FIXED COSTS', 'Fixed Costs', 'EXPENSES', 'REVENUES', 'Property'].includes(op))
-                .map((op) => (
-                <option key={op} value={op}>
-                  {op}
-                </option>
-              ))}
-            </select>
+
+            {/* Search input */}
+            <div className="relative mb-2">
+              <input
+                type="text"
+                value={categorySearch}
+                onChange={(e) => setCategorySearch(e.target.value)}
+                placeholder="Search categories... e.g. 'construction', 'electric', 'salary'"
+                className="w-full px-4 py-2.5 text-sm bg-surface-1 border border-border-light rounded-xl text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/30 transition-all"
+              />
+              {categorySearch && (
+                <button
+                  type="button"
+                  onClick={() => setCategorySearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Results count */}
+            {categorySearch && (
+              <div className="text-xs text-text-tertiary mb-2">
+                {filteredCategories.length > 0 ? (
+                  <span className="text-brand-primary">
+                    {filteredCategories.length} {filteredCategories.length === 1 ? 'result' : 'results'} found - tap to select
+                  </span>
+                ) : (
+                  <span className="text-status-warning">No results found</span>
+                )}
+              </div>
+            )}
+
+            {/* Show filtered results as clickable list when searching */}
+            {categorySearch && filteredCategories.length > 0 && (
+              <div className="mb-2 max-h-64 overflow-y-auto bg-surface-1 border border-border-light rounded-xl">
+                {filteredCategories.map((op) => (
+                  <button
+                    key={op}
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, typeOfOperation: op });
+                      setCategorySearch('');
+                      setCategoryError(false);
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm text-text-primary hover:bg-surface-2 active:bg-brand-primary/20 transition-colors border-b border-border-light last:border-b-0"
+                  >
+                    {op}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Native select (hidden when searching, shown when not searching) */}
+            {!categorySearch && (
+              <select
+                ref={categorySelectRef}
+                id="typeOfOperation"
+                name="typeOfOperation"
+                value={formData.typeOfOperation}
+                onChange={handleChange}
+                className={`w-full px-4 py-2.5 bg-surface-1 border rounded-xl text-text-primary focus:outline-none focus:ring-2 transition-all duration-200 appearance-none cursor-pointer ${
+                  categoryError
+                    ? 'border-red-500 focus:ring-red-500/60 focus:border-red-500 bg-red-50'
+                    : 'border-border-light focus:ring-brand-primary/60 focus:border-transparent'
+                }`}
+                required
+              >
+                <option value="">Select operation type</option>
+                {filteredCategories.map((op) => (
+                  <option key={op} value={op}>
+                    {op}
+                  </option>
+                ))}
+              </select>
+            )}
+
             {categoryError && (
               <p className="mt-2 text-sm text-red-600 font-medium">
                 ⚠️ Please select a specific category from the dropdown (not a header like &quot;EXPENSES&quot;)
@@ -402,21 +476,76 @@ export default function ReviewPage({ params }: any) {
                 <Badge variant="info">AI: {(confidence.typeOfPayment * 100).toFixed(0)}%</Badge>
               )}
             </div>
-            <select
-              id="typeOfPayment"
-              name="typeOfPayment"
-              value={formData.typeOfPayment}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 bg-surface-1 border border-border-light rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/60 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
-              required
-            >
-              <option value="">Select payment type</option>
-              {options.typeOfPayment.map((payment) => (
-                <option key={payment} value={payment}>
-                  {payment}
-                </option>
-              ))}
-            </select>
+
+            {/* Search input */}
+            <div className="relative mb-2">
+              <input
+                type="text"
+                value={paymentSearch}
+                onChange={(e) => setPaymentSearch(e.target.value)}
+                placeholder="Search payment types... e.g. 'cash', 'bank transfer'"
+                className="w-full px-4 py-2.5 text-sm bg-surface-1 border border-border-light rounded-xl text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/30 transition-all"
+              />
+              {paymentSearch && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Results count */}
+            {paymentSearch && (
+              <div className="text-xs text-text-tertiary mb-2">
+                {filteredPaymentTypes.length > 0 ? (
+                  <span className="text-brand-primary">
+                    {filteredPaymentTypes.length} {filteredPaymentTypes.length === 1 ? 'result' : 'results'} found - tap to select
+                  </span>
+                ) : (
+                  <span className="text-status-warning">No results found</span>
+                )}
+              </div>
+            )}
+
+            {/* Show filtered results as clickable list */}
+            {paymentSearch && filteredPaymentTypes.length > 0 && (
+              <div className="max-h-64 overflow-y-auto bg-surface-1 border border-border-light rounded-xl">
+                {filteredPaymentTypes.map((payment) => (
+                  <button
+                    key={payment}
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, typeOfPayment: payment });
+                      setPaymentSearch('');
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm text-text-primary hover:bg-surface-2 active:bg-brand-primary/20 transition-colors border-b border-border-light last:border-b-0"
+                  >
+                    {payment}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Show all payment types when not searching */}
+            {!paymentSearch && (
+              <div className="max-h-64 overflow-y-auto bg-surface-1 border border-border-light rounded-xl">
+                {filteredPaymentTypes.map((payment) => (
+                  <button
+                    key={payment}
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, typeOfPayment: payment });
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm text-text-primary hover:bg-surface-2 active:bg-brand-primary/20 transition-colors border-b border-border-light last:border-b-0"
+                  >
+                    {payment}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Detail Field */}

@@ -259,7 +259,7 @@ export default function PnLPage() {
       <div className="fixed inset-0 bg-gradient-radial pointer-events-none" aria-hidden="true" />
 
       <motion.div
-        className="relative max-w-7xl mx-auto px-4 py-8 md:py-12"
+        className="relative max-w-7xl mx-auto px-2 md:px-4 py-8 md:py-12"
         variants={uiStaggerContainer}
         initial="hidden"
         animate="visible"

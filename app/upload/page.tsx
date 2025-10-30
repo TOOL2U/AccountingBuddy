@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,11 +11,11 @@ import { getOptions } from '@/utils/matchOption';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Textarea from '@/components/ui/Textarea';
-import OverlayDropdownPortal from '@/components/OverlayDropdownPortal';
 import { Zap, Camera, Upload, FileText, Sparkles, ArrowRight, CheckCircle2, Search, X } from 'lucide-react';
 
 export default function UploadPage() {
   const router = useRouter();
+
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -30,19 +30,12 @@ export default function UploadPage() {
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
 
-  // Category search state
-  const [categorySearch, setCategorySearch] = useState<string>('');
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  // Category and payment selection state
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-
-  // Payment type search state
-  const [paymentSearch, setPaymentSearch] = useState<string>('');
-  const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<string>('');
 
-  // Refs for dropdown anchoring
-  const categoryAnchorRef = useRef<HTMLDivElement | null>(null);
-  const paymentAnchorRef = useRef<HTMLDivElement | null>(null);
+  // Search state for filtering (only category)
+  const [categorySearch, setCategorySearch] = useState<string>('');
 
   const acceptedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
 
@@ -55,53 +48,11 @@ export default function UploadPage() {
   }, []);
 
   // Filter categories based on search
-  const filteredCategories = categorySearch.trim()
-    ? options.typeOfOperation.filter(category => {
-        // Exclude header categories that shouldn't be selectable
-        const headerCategories = ['FIXED COSTS', 'Fixed Costs', 'EXPENSES', 'REVENUES', 'Property'];
-        if (headerCategories.includes(category)) {
-          return false;
-        }
-        // Filter by search term
-        return category.toLowerCase().includes(categorySearch.toLowerCase());
-      }).slice(0, 8) // Limit to 8 results for better UX
-    : [];
+  const filteredCategories = options.typeOfOperation
+    .filter(op => !['FIXED COSTS', 'Fixed Costs', 'EXPENSES', 'REVENUES', 'Property'].includes(op))
+    .filter(op => categorySearch.trim() === '' || op.toLowerCase().includes(categorySearch.toLowerCase()));
 
-  // Filter payment types based on search
-  const filteredPaymentTypes = paymentSearch.trim()
-    ? options.typeOfPayment.filter(payment => 
-        payment.toLowerCase().includes(paymentSearch.toLowerCase())
-      ).slice(0, 8) // Limit to 8 results for better UX
-    : [];
 
-  // Handle category selection
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
-    setCategorySearch('');
-    setShowCategoryDropdown(false);
-    // Don't modify the manual command - category will be applied on review page
-  };
-
-  // Handle payment type selection
-  const handlePaymentSelect = (payment: string) => {
-    setSelectedPayment(payment);
-    setPaymentSearch('');
-    setShowPaymentDropdown(false);
-  };
-
-  // Handle category search input
-  const handleCategorySearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setCategorySearch(value);
-    setShowCategoryDropdown(value.trim().length > 0);
-  };
-
-  // Handle payment search input
-  const handlePaymentSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setPaymentSearch(value);
-    setShowPaymentDropdown(value.trim().length > 0);
-  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -454,6 +405,7 @@ export default function UploadPage() {
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-primary/10 rounded-full blur-3xl animate-pulse pointer-events-none" />
       <div className="absolute top-20 right-1/4 w-80 h-80 bg-status-info/10 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
 
+      <div className="max-w-4xl mx-auto px-2 md:px-8">
       {/* Header with stunning logo and animations */}
       <div className="text-center mb-8 md:mb-12 relative z-10">
         {/* Logo/Icon with glow effect */}
@@ -582,7 +534,7 @@ export default function UploadPage() {
             
           </div>
 
-          {/* Category Search - Optional Helper */}
+          {/* Category Selection - Optional */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -591,35 +543,63 @@ export default function UploadPage() {
           >
             <div className="flex items-center gap-2 mb-2">
               <Search className="w-4 h-4 text-brand-primary" />
-              <span className="text-sm font-medium text-text-primary">Category Search</span>
+              <span className="text-sm font-medium text-text-primary">Category</span>
               <span className="text-xs px-2 py-0.5 bg-status-info/20 text-status-info rounded-full border border-status-info/30">
                 Optional
               </span>
             </div>
 
-            <div ref={categoryAnchorRef} className="relative">
+            {/* Search input */}
+            <div className="relative mb-2">
               <input
                 type="text"
                 value={categorySearch}
-                onChange={handleCategorySearchChange}
-                onFocus={() => categorySearch.trim() && setShowCategoryDropdown(true)}
+                onChange={(e) => setCategorySearch(e.target.value)}
                 placeholder="Search categories... e.g. 'construction', 'electric', 'salary'"
                 className="w-full px-4 py-2.5 text-sm bg-surface-2 border border-border-light rounded-xl text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/30 transition-all"
               />
-              
               {categorySearch && (
                 <button
-                  onClick={() => {
-                    setCategorySearch('');
-                    setShowCategoryDropdown(false);
-                  }}
+                  onClick={() => setCategorySearch('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
-            
+
+            {/* Results count - only show when searching */}
+            {categorySearch && (
+              <div className="text-xs text-text-tertiary mb-2">
+                {filteredCategories.length > 0 ? (
+                  <span className="text-brand-primary">
+                    {filteredCategories.length} {filteredCategories.length === 1 ? 'result' : 'results'} found - tap to select
+                  </span>
+                ) : (
+                  <span className="text-status-warning">No results found</span>
+                )}
+              </div>
+            )}
+
+            {/* Show filtered results as clickable list - only when searching */}
+            {categorySearch && filteredCategories.length > 0 && (
+              <div className="max-h-64 overflow-y-auto bg-surface-2 border border-border-light rounded-xl">
+                {filteredCategories.map((op) => (
+                  <button
+                    key={op}
+                    type="button"
+                    onClick={() => {
+                      setSelectedCategory(op);
+                      setCategorySearch('');
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm text-text-primary hover:bg-surface-1 active:bg-brand-primary/20 transition-colors border-b border-border-light last:border-b-0"
+                  >
+                    {op}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {selectedCategory && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -653,7 +633,7 @@ export default function UploadPage() {
             </div>
           </motion.div>
 
-          {/* Type of Payment Search - REQUIRED */}
+          {/* Type of Payment - REQUIRED */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -668,30 +648,22 @@ export default function UploadPage() {
               </span>
             </div>
 
-            <div ref={paymentAnchorRef} className="relative">
-              <input
-                type="text"
-                value={paymentSearch}
-                onChange={handlePaymentSearchChange}
-                onFocus={() => paymentSearch.trim() && setShowPaymentDropdown(true)}
-                data-payment-search
-                placeholder="Search payment types... e.g. 'cash', 'bank transfer'"
-                className="w-full px-4 py-2.5 text-sm bg-surface-2 border border-border-light rounded-xl text-text-primary placeholder-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/30 transition-all"
-              />
-              
-              {paymentSearch && (
-                <button
-                  onClick={() => {
-                    setPaymentSearch('');
-                    setShowPaymentDropdown(false);
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-            
+            <select
+              id="typeOfPayment"
+              name="typeOfPayment"
+              value={selectedPayment}
+              onChange={(e) => setSelectedPayment(e.target.value)}
+              className="w-full px-4 py-2.5 bg-surface-2 border border-border-light rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/60 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+              required
+            >
+              <option value="">Select payment type</option>
+              {options.typeOfPayment.map((payment) => (
+                <option key={payment} value={payment}>
+                  {payment}
+                </option>
+              ))}
+            </select>
+
             {selectedPayment && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -1107,38 +1079,7 @@ export default function UploadPage() {
         </>
       )}
 
-      {/* Portal-based dropdowns */}
-      <OverlayDropdownPortal
-        visible={!!categorySearch.trim() && showCategoryDropdown}
-        anchorEl={categoryAnchorRef.current}
-        items={filteredCategories}
-        emptyMessage={`No categories found for "${categorySearch}"`}
-        onSelect={(val) => {
-          handleCategorySelect(val);
-          setShowCategoryDropdown(false);
-          setCategorySearch('');
-        }}
-        onClose={() => {
-          setShowCategoryDropdown(false);
-          setCategorySearch('');
-        }}
-      />
-
-      <OverlayDropdownPortal
-        visible={!!paymentSearch.trim() && showPaymentDropdown}
-        anchorEl={paymentAnchorRef.current}
-        items={filteredPaymentTypes}
-        emptyMessage={`No payment types found for "${paymentSearch}"`}
-        onSelect={(val) => {
-          handlePaymentSelect(val);
-          setShowPaymentDropdown(false);
-          setPaymentSearch('');
-        }}
-        onClose={() => {
-          setShowPaymentDropdown(false);
-          setPaymentSearch('');
-        }}
-      />
+      </div>
     </motion.div>
   );
 }

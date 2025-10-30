@@ -46,9 +46,9 @@ export default function Navigation() {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo/Title - Very subtle */}
-          <Link href="/upload" className="flex items-center gap-3 group relative">
+        <div className="flex justify-between md:justify-between items-center h-16">
+          {/* Logo/Title - Hidden on mobile, visible on desktop */}
+          <Link href="/upload" className="hidden md:flex items-center gap-3 group relative">
             {/* Very subtle hover glow */}
             <motion.div
               className="absolute inset-0 bg-slate-400/5 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"
@@ -77,8 +77,8 @@ export default function Navigation() {
             </div>
           </Link>
 
-          {/* Navigation Links - Enhanced with icons and effects */}
-          <div className="flex gap-2">
+          {/* Navigation Links - Centered on mobile, right-aligned on desktop */}
+          <div className="flex gap-2 mx-auto md:mx-0">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);

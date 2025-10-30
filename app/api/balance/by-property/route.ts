@@ -107,7 +107,12 @@ async function fetchUploadedBalances(): Promise<Map<string, UploadedBalance>> {
 async function fetchTransactions(): Promise<Transaction[]> {
   try {
     // Call the inbox API to get all transactions
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    // Use BASE_URL for server-side API calls (NEXT_PUBLIC_* vars are for client-side only)
+    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+
+    console.log('  → Fetching from URL:', `${baseUrl}/api/inbox`);
+    console.log('  → BASE_URL env var:', process.env.BASE_URL);
+
     const response = await fetch(`${baseUrl}/api/inbox`, {
       method: 'GET',
     });
@@ -117,6 +122,7 @@ async function fetchTransactions(): Promise<Transaction[]> {
     }
 
     const data = await response.json();
+    console.log('  ✓ Fetched', data.data?.length || 0, 'transactions');
     return data.data || [];
   } catch (error) {
     console.error('Error fetching transactions:', error);

@@ -727,7 +727,7 @@ export default function AdminPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="max-w-7xl mx-auto px-4 py-12 page-admin"
+      className="max-w-7xl mx-auto px-2 md:px-4 py-12 page-admin"
     >
       {/* Header with stunning design */}
       <div className="mb-8 text-center relative">

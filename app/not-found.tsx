@@ -6,7 +6,7 @@ import { ArrowLeft, Home } from 'lucide-react';
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-0">
-      <div className="text-center space-y-6 max-w-md mx-auto px-4">
+      <div className="text-center space-y-6 max-w-md mx-auto px-2 md:px-4">
         <div className="space-y-2">
           <h1 className="text-6xl font-bold text-brand-primary">404</h1>
           <h2 className="text-2xl font-semibold text-text-primary">Page Not Found</h2>

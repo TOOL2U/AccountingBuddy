@@ -7,6 +7,7 @@
 
 html {
   scroll-behavior: smooth;
+  touch-action: manipulation; /* Prevent double-tap zoom and improve touch responsiveness */
 }
 
 body {
@@ -351,4 +352,50 @@ button, a, input, textarea, select {
 
 .animate-border-glow {
   animation: border-glow 6s ease-in-out infinite;
+}
+
+/* ============================================
+   Mobile Viewport Fixes - Prevent iOS Zoom
+   ============================================ */
+
+/* Prevent iOS Safari from zooming in on input focus
+   iOS Safari auto-zooms when input font-size < 16px */
+input,
+select,
+textarea,
+button {
+  font-size: 16px !important;
+}
+
+/* Ensure inputs maintain proper appearance despite 16px minimum */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+textarea,
+select {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Prevent accidental double-tap zoom on buttons */
+button,
+a {
+  touch-action: manipulation;
+}
+
+/* Ensure proper mobile touch behavior */
+* {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-touch-callout: none;
+}
+
+/* Allow text selection for inputs only */
+input,
+textarea,
+select {
+  -webkit-user-select: text;
+  user-select: text;
 }
