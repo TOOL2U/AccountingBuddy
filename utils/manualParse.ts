@@ -1,0 +1,378 @@
+import { matchProperty, matchTypeOfOperation, matchTypeOfPayment } from './matchOption';
+import options from '@/config/options.json';
+
+/**
+ * Parse result with confidence score and extracted data
+ */
+export interface ParseResult {
+  ok: boolean;
+  data?: Partial<{
+    day: string;
+    month: string;
+    year: string;
+    property: string;
+    typeOfOperation: string;
+    typeOfPayment: string;
+    detail: string;
+    ref: string;
+    debit: number;
+    credit: number;
+  }>;
+  confidence: number;
+  reasons?: string[];
+}
+
+/**
+ * Detect debit/credit/expense/income keywords
+ * Returns: 'debit' | 'credit' | null
+ */
+function detectTransactionType(input: string): 'debit' | 'credit' | null {
+  const lower = input.toLowerCase();
+  
+  // Credit/Income keywords
+  if (/(credit|income|in|revenue|sales|rental|deposit)\b/.test(lower)) {
+    return 'credit';
+  }
+  
+  // Debit/Expense keywords
+  if (/(debit|expense|exp|out|payment|paid|cost)\b/.test(lower)) {
+    return 'debit';
+  }
+  
+  return null;
+}
+
+/**
+ * Extract amount from input
+ * Supports: 2000, 2,000, ฿2,000, 2000 thb, 2000 baht
+ */
+function extractAmount(input: string): number | null {
+  // Remove currency symbols and normalize
+  const normalized = input
+    .replace(/[฿$€£¥]/g, '')
+    .replace(/\s+(thb|baht|bath|dollar|usd)\b/gi, '')
+    .trim();
+  
+  // Find numeric patterns (with optional commas)
+  const matches = normalized.match(/\b(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)\b/g);
+  
+  if (!matches || matches.length === 0) {
+    return null;
+  }
+  
+  // Take the first numeric value found
+  const amountStr = matches[0].replace(/,/g, '');
+  const amount = parseFloat(amountStr);
+  
+  return isNaN(amount) ? null : amount;
+}
+
+/**
+ * Parse date from input
+ * Supports: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD
+ * Handles BE (Buddhist Era) years by subtracting 543
+ */
+function parseDate(input: string): { day: string; month: string; year: string } | null {
+  const lower = input.toLowerCase();
+  
+  // Check for BE year indicator
+  const isBE = /\b(be|พ\.ศ\.)\b/.test(lower);
+  
+  // Try DD/MM/YYYY or DD-MM-YYYY
+  const ddmmyyyy = input.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\b/);
+  if (ddmmyyyy) {
+    let year = parseInt(ddmmyyyy[3]);
+    // If year > 2100, assume it's BE
+    if (year > 2100 || isBE) {
+      year -= 543;
+    }
+    
+    // Convert numeric month to abbreviation
+    const monthNum = parseInt(ddmmyyyy[2]);
+    const monthAbbrev = new Date(year, monthNum - 1, 1).toLocaleString('en', { month: 'short' });
+    
+    return {
+      day: ddmmyyyy[1].padStart(2, '0'),
+      month: monthAbbrev,
+      year: year.toString(),
+    };
+  }
+  
+  // Try YYYY-MM-DD
+  const yyyymmdd = input.match(/\b(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\b/);
+  if (yyyymmdd) {
+    let year = parseInt(yyyymmdd[1]);
+    if (year > 2100 || isBE) {
+      year -= 543;
+    }
+    
+    // Convert numeric month to abbreviation
+    const monthNum = parseInt(yyyymmdd[2]);
+    const monthAbbrev = new Date(year, monthNum - 1, 1).toLocaleString('en', { month: 'short' });
+    
+    return {
+      day: yyyymmdd[3].padStart(2, '0'),
+      month: monthAbbrev,
+      year: year.toString(),
+    };
+  }
+  
+  return null;
+}
+
+/**
+ * Extract property from input using keyword matching
+ * PRIORITY: Property detection is the PRIMARY goal for quick entry
+ */
+function extractProperty(input: string): string | null {
+  const result = matchProperty(input);
+
+  // Lower threshold for property matching - accept any match with confidence > 0.5
+  let finalResult = result.confidence > 0.5 ? result.value : null;
+
+  // Emergency fallback - direct keyword search for critical properties
+  // IMPORTANT: Check for exact word matches to avoid false positives
+  if (!finalResult) {
+    const lowerInput = input.toLowerCase();
+    const words = lowerInput.split(/[\s\-,]+/); // Split by space, dash, or comma
+
+    // Check for exact word matches first (highest priority)
+    if (words.includes('family')) finalResult = 'Family';
+    else if (words.includes('shaun')) finalResult = 'Shaun Ducker';
+    else if (words.includes('maria')) finalResult = 'Maria Ren';
+    else if (words.includes('alesia')) finalResult = 'Alesia House';
+    else if (words.includes('lanna')) finalResult = 'Lanna House';
+    else if (words.includes('parents') || words.includes('parent')) finalResult = 'Parents House';
+    else if (words.includes('sia') || words.includes('moon')) finalResult = 'Sia Moon - Land - General';
+  }
+
+  return finalResult;
+}
+
+/**
+ * Extract payment type from input using keyword matching
+ */
+function extractPayment(input: string): string | null {
+  const result = matchTypeOfPayment(input);
+  return result.matched ? result.value : null;
+}
+
+/**
+ * Extract operation type from input using keyword matching
+ */
+function extractOperation(input: string): string | null {
+  const result = matchTypeOfOperation(input);
+  return result.matched ? result.value : null;
+}
+
+/**
+ * Extract detail/description from input
+ * Removes known keywords and returns remaining text
+ */
+function extractDetail(input: string, detectedKeywords: string[]): string {
+  let detail = input;
+  
+  // Remove detected keywords
+  for (const keyword of detectedKeywords) {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    detail = detail.replace(regex, '');
+  }
+  
+  // Remove common separators and clean up
+  detail = detail
+    .replace(/[,\-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  return detail || 'Manual entry';
+}
+
+/**
+ * Parse manual command input
+ * @param input - User's text command (e.g., "debit 2000 salaries cash")
+ * @returns Parse result with confidence score and extracted data
+ */
+export function parseManualCommand(input: string): ParseResult {
+  if (!input || input.trim().length === 0) {
+    return {
+      ok: false,
+      confidence: 0,
+      reasons: ['Input is empty'],
+    };
+  }
+  
+  const normalized = input.toLowerCase().trim();
+  const reasons: string[] = [];
+  let confidence = 0;
+  
+  // Initialize data object
+  const data: Partial<ParseResult['data']> = {
+    ref: '',
+  };
+  
+  // 1. Detect transaction type (debit/credit)
+  const transactionType = detectTransactionType(normalized);
+  if (transactionType) {
+    if (transactionType === 'debit') {
+      data.debit = 0; // Will be set later
+      data.credit = 0;
+    } else {
+      data.debit = 0;
+      data.credit = 0; // Will be set later
+    }
+    confidence += 0.4;
+    reasons.push(`Detected ${transactionType} transaction`);
+  } else {
+    // Default to debit transaction when no type is specified
+    data.debit = 0;
+    data.credit = 0;
+    reasons.push('No transaction type specified - defaulting to debit');
+  }
+  
+  // 2. Extract amount
+  const amount = extractAmount(input);
+  if (amount !== null) {
+    if (transactionType === 'credit') {
+      data.credit = amount;
+      data.debit = 0; // Ensure debit is 0 for credit transactions
+    } else {
+      // Default to debit for all other cases (including when no transaction type is detected)
+      data.debit = amount;
+      data.credit = 0; // Ensure credit is 0 for debit transactions
+    }
+    confidence += 0.4;
+    reasons.push(`Extracted amount: ${amount} (${transactionType === 'credit' ? 'credit' : 'debit - default'})`);
+  }
+  
+  // 3. Extract date
+  const dateResult = parseDate(input);
+  if (dateResult) {
+    data.day = dateResult.day;
+    data.month = dateResult.month;
+    data.year = dateResult.year;
+    confidence += 0.1;
+    reasons.push(`Parsed date: ${dateResult.day}/${dateResult.month}/${dateResult.year}`);
+  } else {
+    // Default to today's date with proper month abbreviation
+    const today = new Date();
+    data.day = today.getDate().toString().padStart(2, '0');
+    data.month = today.toLocaleString('en', { month: 'short' });
+    data.year = today.getFullYear().toString();
+  }
+  
+  // 4. Extract property
+  const property = extractProperty(normalized);
+  if (property) {
+    data.property = property;
+    confidence += 0.05;
+    reasons.push(`Detected property: ${property}`);
+  } else {
+    data.property = 'Sia Moon - Land - General'; // Updated default to match live data
+  }
+  
+  // 5. Extract payment type
+  const payment = extractPayment(normalized);
+  if (payment) {
+    data.typeOfPayment = payment;
+    confidence += 0.2;
+    reasons.push(`Detected payment: ${payment}`);
+  } else {
+    data.typeOfPayment = 'Cash'; // Default
+  }
+  
+  // 6. Extract operation type
+  const operation = extractOperation(normalized);
+  if (operation) {
+    data.typeOfOperation = operation;
+    confidence += 0.3;
+    reasons.push(`Detected operation: ${operation}`);
+    
+    // CRITICAL: Auto-detect Revenue categories and use credit instead of debit
+    if (operation.startsWith('Revenue')) {
+      if (transactionType === 'debit' && amount !== null) {
+        console.log(`[MANUAL AUTO-CREDIT] Revenue category detected: "${operation}" - Moving amount ${amount} to credit`);
+        data.credit = amount;
+        data.debit = 0;
+        reasons.push('Revenue → Auto-switched to credit');
+      }
+    }
+    
+    // CRITICAL: Auto-detect EXP categories and use debit instead of credit
+    if (operation.startsWith('EXP')) {
+      if (transactionType === 'credit' && amount !== null) {
+        console.log(`[MANUAL AUTO-DEBIT] Expense category detected: "${operation}" - Moving amount ${amount} to debit`);
+        data.debit = amount;
+        data.credit = 0;
+        reasons.push('Expense → Auto-switched to debit');
+      }
+    }
+  } else {
+    // Use empty string to show "Select operation type" on review page
+    data.typeOfOperation = '';
+  }
+  
+  // 7. Extract detail/description
+  const detectedKeywords = [
+    transactionType || '',
+    amount?.toString() || '',
+    payment || '',
+    operation || '',
+    property || '',
+  ].filter(Boolean);
+  
+  data.detail = extractDetail(input, detectedKeywords);
+  
+  // Determine if parsing was successful
+  const hasAmount = amount !== null;
+  const hasOperation = operation !== null;
+  const hasPaymentOrType = payment !== null || transactionType !== null;
+  
+  const ok = confidence >= 0.75 && hasAmount && (hasOperation || hasPaymentOrType);
+  
+  return {
+    ok,
+    data,
+    confidence: Math.min(confidence, 1.0),
+    reasons,
+  };
+}
+
+/**
+ * Get command history from localStorage
+ */
+export function getCommandHistory(): string[] {
+  if (typeof window === 'undefined') return [];
+  
+  try {
+    const history = localStorage.getItem('ab_manual_history');
+    return history ? JSON.parse(history) : [];
+  } catch (error) {
+    console.error('Failed to load command history:', error);
+    return [];
+  }
+}
+
+/**
+ * Save command to history (max 5 commands)
+ */
+export function saveCommandToHistory(command: string): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const history = getCommandHistory();
+    
+    // Remove duplicate if exists
+    const filtered = history.filter(cmd => cmd !== command);
+    
+    // Add to beginning
+    filtered.unshift(command);
+    
+    // Keep only last 5
+    const updated = filtered.slice(0, 5);
+    
+    localStorage.setItem('ab_manual_history', JSON.stringify(updated));
+  } catch (error) {
+    console.error('Failed to save command history:', error);
+  }
+}
+

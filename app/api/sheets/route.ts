@@ -6,6 +6,18 @@ import { matchProperty, matchTypeOfOperation, matchTypeOfPayment } from '@/utils
 const SHEETS_WEBHOOK_URL = process.env.SHEETS_WEBHOOK_URL;
 const SHEETS_WEBHOOK_SECRET = process.env.SHEETS_WEBHOOK_SECRET;
 
+export async function GET() {
+  // Health check endpoint
+  const configured = !!(SHEETS_WEBHOOK_URL && SHEETS_WEBHOOK_SECRET);
+  
+  return NextResponse.json({
+    status: 'ok',
+    service: 'Google Sheets Webhook',
+    configured,
+    timestamp: new Date().toISOString()
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('[SHEETS] Starting Google Sheets append...');
@@ -50,6 +62,19 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[SHEETS] Payload validated successfully');
+
+    // Server-side validation: Check for empty or invalid categories
+    const invalidCategories = [''];
+    if (!validation.data.typeOfOperation || invalidCategories.includes(validation.data.typeOfOperation)) {
+      console.error('[✖] Invalid category detected:', validation.data.typeOfOperation);
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Invalid category: "${validation.data.typeOfOperation}". Please select a valid category.`
+        },
+        { status: 400 }
+      );
+    }
 
     // Normalize dropdown fields to ensure they match canonical options
     const normalizedData = {

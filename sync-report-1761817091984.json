@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-10-30T09:38:11.984Z",
+  "summary": {
+    "dropdownChanges": 4,
+    "appsScriptModified": true,
+    "dryRun": false
+  },
+  "changes": {
+    "typeOfOperation": {
+      "added": [],
+      "removed": [],
+      "total": 33
+    },
+    "properties": {
+      "added": [
+        "Shaun Ducker - Personal",
+        "Maria Ren - Personal"
+      ],
+      "removed": [
+        "Shaun Ducker",
+        "Maria Ren"
+      ],
+      "total": 7
+    },
+    "typeOfPayment": {
+      "added": [],
+      "removed": [],
+      "total": 4
+    }
+  },
+  "pnlStructure": {
+    "propertyPersonStart": 14,
+    "propertyPersonEnd": 20,
+    "propertyPersonCount": 7,
+    "overheadStart": 30,
+    "overheadEnd": 57,
+    "overheadCount": 28
+  },
+  "namedRanges": {
+    "Year_Property_Person_Expense": {
+      "row": 21,
+      "sheet": 637199885
+    },
+    "Month_GOP": {
+      "row": 61,
+      "sheet": 637199885
+    },
+    "Month_Total_Revenue": {
+      "row": 11,
+      "sheet": 637199885
+    },
+    "Month_Total_Overheads": {
+      "row": 58,
+      "sheet": 637199885
+    },
+    "Month_EBITDA_Margin": {
+      "row": 62,
+      "sheet": 637199885
+    },
+    "Year_Total_Overheads": {
+      "row": 58,
+      "sheet": 637199885
+    },
+    "Year_Total_Revenue": {
+      "row": 11,
+      "sheet": 637199885
+    },
+    "Year_GOP": {
+      "row": 61,
+      "sheet": 637199885
+    },
+    "Month_Property_Person_Expense": {
+      "row": 21,
+      "sheet": 637199885
+    },
+    "Year_EBITDA_Margin": {
+      "row": 62,
+      "sheet": 637199885
+    }
+  }
+}

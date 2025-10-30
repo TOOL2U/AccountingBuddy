@@ -4,6 +4,8 @@
  * Trims whitespace and converts numeric fields to numbers
  */
 
+import { getOptions } from './matchOption';
+
 export interface ReceiptPayload {
   day: string;
   month: string;
@@ -95,6 +97,41 @@ export function validatePayload(payload: ReceiptPayload): ValidationResult {
     return {
       isValid: false,
       error: 'Type of Operation cannot be empty',
+    };
+  }
+
+  // Check for "Uncategorized" and prevent submission
+  if (typeOfOperation === 'Uncategorized') {
+    return {
+      isValid: false,
+      error: 'Please select a valid category from the dropdown. "Uncategorized" entries cannot be sent to the sheet.',
+    };
+  }
+
+  // Validate against live dropdown options
+  const options = getOptions();
+  
+  // Check if property is valid
+  if (!options.properties.includes(property)) {
+    return {
+      isValid: false,
+      error: `Invalid property "${property}". Please select from: ${options.properties.join(', ')}`,
+    };
+  }
+
+  // Check if typeOfOperation is valid
+  if (!options.typeOfOperation.includes(typeOfOperation)) {
+    return {
+      isValid: false,
+      error: `Invalid operation type "${typeOfOperation}". Please select a valid category from the dropdown.`,
+    };
+  }
+
+  // Check if typeOfPayment is valid
+  if (!options.typeOfPayment.includes(typeOfPayment)) {
+    return {
+      isValid: false,
+      error: `Invalid payment type "${typeOfPayment}". Please select from: ${options.typeOfPayment.join(', ')}`,
     };
   }
 

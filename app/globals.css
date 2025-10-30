@@ -1,13 +1,142 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
+
+* {
+  @apply antialiased;
+}
+
+html {
+  scroll-behavior: smooth;
+  touch-action: manipulation; /* Prevent double-tap zoom and improve touch responsiveness */
+}
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  background-color: #f9fafb;
-  color: #111827;
+  background-color: #000000;
+  color: #FFFFFF;
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgba(71, 85, 105, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(51, 65, 85, 0.02) 0%, transparent 50%);
+  background-attachment: fixed;
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* Toast Animations */
+/* Very slow, ultra-subtle smoke overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: 
+    radial-gradient(ellipse at 20% 30%, rgba(71, 85, 105, 0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 70%, rgba(100, 116, 139, 0.03) 0%, transparent 35%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+  animation: smoke-drift 80s ease-in-out infinite;
+}
+
+/* Very slow, subtle smoke drift */
+@keyframes smoke-drift {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0.2;
+  }
+  25% {
+    transform: translate(2%, -1%);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate(-1%, 2%);
+    opacity: 0.2;
+  }
+  75% {
+    transform: translate(1%, 0.5%);
+    opacity: 0.25;
+  }
+}
+
+/* Page-specific background variations - very subtle */
+
+/* Upload page - Barely noticeable slate tint */
+.page-upload::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 40% 40%, rgba(71, 85, 105, 0.02) 0%, transparent 50%);
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  animation: smoke-drift 90s ease-in-out infinite;
+}
+
+/* Inbox page - Subtle gray tint */
+.page-inbox::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 60% 30%, rgba(100, 116, 139, 0.025) 0%, transparent 50%);
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  animation: smoke-drift 85s ease-in-out infinite reverse;
+}
+
+/* P&L page - Very subtle steel tint */
+.page-pnl::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 50% 60%, rgba(71, 85, 105, 0.02) 0%, transparent 50%);
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  animation: smoke-drift 95s ease-in-out infinite;
+}
+
+/* Balance page - Minimal slate tint */
+.page-balance::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 30% 70%, rgba(51, 65, 85, 0.02) 0%, transparent 50%);
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  animation: smoke-drift 88s ease-in-out infinite reverse;
+}
+
+/* Admin page - Very subtle charcoal tint */
+.page-admin::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(30, 41, 59, 0.025) 0%, transparent 50%);
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  animation: smoke-drift 92s ease-in-out infinite;
+}
+
+/* Toast Animations - Slowed down */
 @keyframes slide-up {
   from {
     transform: translateY(100%);
@@ -49,22 +178,22 @@ body {
 }
 
 .animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+  animation: slide-up 0.6s ease-out;
 }
 
 .animate-fade-in {
-  animation: fade-in 0.3s ease-in;
+  animation: fade-in 0.5s ease-in;
 }
 
 .animate-fade-out {
-  animation: fade-out 0.3s ease-out;
+  animation: fade-out 0.5s ease-out;
 }
 
 .animate-slide-in-right {
-  animation: slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slide-in-right 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Page Transitions */
+/* Page Transitions - Slowed down */
 @keyframes page-fade-in {
   from {
     opacity: 0;
@@ -77,15 +206,49 @@ body {
 }
 
 .page-transition {
-  animation: page-fade-in 0.4s ease-out;
+  animation: page-fade-in 0.8s ease-out;
 }
 
-/* Smooth transitions for interactive elements */
-button, a, input {
-  transition: all 0.2s ease-in-out;
+/* Smooth transitions for interactive elements - Slower */
+button, a, input, textarea, select {
+  transition: all 0.4s ease-in-out;
 }
 
-/* Loading spinner pulse */
+/* Glass morphism effect - Slower transition */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-hover {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.4s ease-in-out;
+}
+
+.glass-hover:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Focus ring for accessibility */
+.focus-ring:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: rgba(96, 165, 250, 0.6);
+}
+
+/* Subtle gradient text */
+.gradient-text {
+  background: linear-gradient(to right, #94A3B4, #CBD5E1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Loading spinner pulse - Slower */
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -96,6 +259,143 @@ button, a, input {
 }
 
 .animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Animated gradient for text - Slower */
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  animation: gradient 6s ease infinite;
+}
+
+/* Floating animation - Slower */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* Minimal glow effects - very subtle */
+.glow-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(148, 163, 184, 0.08) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.glow-button:hover::before {
+  opacity: 1;
+}
+
+/* Card subtle effect */
+.card-glow {
+  position: relative;
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(71, 85, 105, 0.15);
+  transition: all 0.3s ease;
+}
+
+.card-glow:hover {
+  border-color: rgba(100, 116, 139, 0.2);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Input minimal glow on focus */
+.input-glow:focus {
+  box-shadow: 0 0 0 1px rgba(71, 85, 105, 0.3);
+  border-color: rgba(100, 116, 139, 0.4);
+}
+
+/* Very subtle text emphasis */
+.text-glow {
+  text-shadow: 0 0 20px rgba(148, 163, 184, 0.1);
+}
+
+/* Minimal border emphasis */
+@keyframes border-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(71, 85, 105, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(100, 116, 139, 0.15);
+  }
+}
+
+.animate-border-glow {
+  animation: border-glow 6s ease-in-out infinite;
+}
+
+/* ============================================
+   Mobile Viewport Fixes - Prevent iOS Zoom
+   ============================================ */
+
+/* Prevent iOS Safari from zooming in on input focus
+   iOS Safari auto-zooms when input font-size < 16px */
+input,
+select,
+textarea,
+button {
+  font-size: 16px !important;
+}
+
+/* Ensure inputs maintain proper appearance despite 16px minimum */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+textarea,
+select {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Prevent accidental double-tap zoom on buttons */
+button,
+a {
+  touch-action: manipulation;
+}
+
+/* Ensure proper mobile touch behavior */
+* {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-touch-callout: none;
+}
+
+/* Allow text selection for inputs only */
+input,
+textarea,
+select {
+  -webkit-user-select: text;
+  user-select: text;
+}

@@ -33,3 +33,26 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Development and testing files
+/scripts/
+/logs/
+.server.pid
+server.log
+*-backup.json
+config/enhanced-keywords.json
+config/options-backup.json
+
+# Testing and development documentation
+CLEANUP_REPORT.md
+DESIGN_SYSTEM.md
+DESIGN_SYSTEM_PHASE1_COMPLETE.md
+PHASE*.md
+PNL_FEATURE_REPORT.md
+*_REPORT.md
+
+# Apps Script files (should be managed separately)
+APPS_SCRIPT_*.js
+CREATE_*.gs
+*_DEPLOYMENT_GUIDE.md
+
+accounting-buddy-*.json

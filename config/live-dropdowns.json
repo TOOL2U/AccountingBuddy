@@ -1,51 +1,80 @@
 {
   "property": [
-    "Sia Moon",
+    "Sia Moon - Land - General",
     "Alesia House",
     "Lanna House",
-    "Parents House"
+    "Parents House",
+    "Shaun Ducker - Personal",
+    "Maria Ren - Personal",
+    "Family"
   ],
   "typeOfOperation": [
-    "REVENUES",
-    "Commision",
-    "Sales",
-    "Services",
-    "COGS",
-    "EXPENSES",
+    "Revenue - Commision",
+    "Revenue - Sales",
+    "Revenue - Services",
+    "Revenue - Rental Income",
+    "EXP - Utilities - Gas",
+    "EXP - Utilities - Water",
+    "EXP - Utilities  - Electricity",
+    "OVERHEAD EXPENSES",
     "EXP - Administration & General - License & Certificates",
     "EXP - Construction - Structure",
     "EXP - Construction - Overheads/General/Unclassified",
+    "EXP - HR - Employees Salaries",
     "EXP - Administration & General - Legal",
     "EXP - Administration & General - Professional fees",
     "EXP - Administration & General - Office supplies",
     "EXP - Administration & General  - Subscription, Software & Membership",
-    "EXP - Construction - Electric",
+    "EXP - Construction - Electric Supplies",
     "EXP - Appliances & Electronics",
     "EXP - Windows, Doors, Locks & Hardware",
-    "EXP - Decor",
+    "EXP - Repairs & Maintenance  - Furniture & Decorative Items",
     "EXP - Repairs & Maintenance  - Waste removal",
     "EXP - Repairs & Maintenance - Tools & Equipment",
-    "EXP - Repairs & Maintenance - Painting & deco",
+    "EXP - Repairs & Maintenance - Painting & Decoration",
     "EXP - Repairs & Maintenance - Electrical & Mechanical",
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
     "EXP - Construction - Wall",
-    "Property",
-    "Sia Moon",
-    "Alesia House",
-    "Lanna House",
-    "Parents House"
+    "EXP - Other Expenses",
+    "EXP - Personal - Massage",
+    "EXP - Household - Alcohol",
+    "EXP - Household - Groceries",
+    "EXP - Household - Nappies",
+    "EXP - Household - Toiletries"
   ],
   "typeOfPayment": [
-    "Credit card",
-    "Bank transfer",
+    "Bank Transfer - Bangkok Bank - Shaun Ducker",
+    "Bank Transfer - Bangkok Bank - Maria Ren",
+    "Bank transfer - Krung Thai Bank - Family Account",
     "Cash"
   ],
-  "validationRanges": {
-    "property": "Data!$A$37:$A$40",
-    "typeOfOperation": "Data!$A$3:$A$65",
-    "typeOfPayment": "Data!$A$70:$A$72"
+  "extractedAt": "2025-10-30T09:38:11.977Z",
+  "source": "google_sheets_api",
+  "ranges": {
+    "property": "Data!A38:A43",
+    "typeOfOperation": "Data!A4:A35",
+    "typeOfPayment": "Data!A46:A49"
   },
-  "fetchedAt": "2025-10-25T05:19:10.774Z",
-  "source": "live_validation_rules"
+  "filtered": {
+    "headers": [
+      "REVENUES",
+      "Fixed Costs",
+      "FIXED COSTS",
+      "EXPENSES",
+      "Property"
+    ],
+    "testValues": [
+      "test",
+      "TEST",
+      "Test",
+      "demo",
+      "DEMO",
+      "Demo",
+      "sample",
+      "SAMPLE",
+      "Sample"
+    ]
+  },
+  "fetchedAt": "2025-10-30T09:38:11.978Z"
 }

@@ -64,16 +64,30 @@ function matchKeywords(input: string, keywords: string[]): number {
   for (const keyword of keywords) {
     const keywordLower = keyword.toLowerCase().trim();
     
-    // Exact match
+    // Exact match gets highest score
     if (inputLower === keywordLower) {
       return 1.0;
     }
 
-    // Contains match
-    if (inputLower.includes(keywordLower)) {
-      maxScore = Math.max(maxScore, 0.95);
-    } else if (keywordLower.includes(inputLower)) {
-      maxScore = Math.max(maxScore, 0.85);
+    // For single-word keywords, check word boundaries to prevent "sia" matching "alesia"
+    if (!keywordLower.includes(' ') && !inputLower.includes(' ')) {
+      // Only match if input starts with keyword or keyword starts with input
+      if (inputLower.startsWith(keywordLower) && inputLower.length > keywordLower.length) {
+        // "alesia" should NOT match "sia" - skip short keywords that are substrings
+        if (keywordLower.length >= 4 || inputLower === keywordLower) {
+          maxScore = Math.max(maxScore, 0.85);
+        }
+      } else if (keywordLower.startsWith(inputLower) && keywordLower.length > inputLower.length) {
+        // "sia" can match "sia moon" but not "alesia"
+        maxScore = Math.max(maxScore, 0.9);
+      }
+    } else {
+      // Multi-word keywords: check if input contains keyword or vice versa
+      if (inputLower.includes(keywordLower)) {
+        maxScore = Math.max(maxScore, 0.95);
+      } else if (keywordLower.includes(inputLower)) {
+        maxScore = Math.max(maxScore, 0.85);
+      }
     }
 
     // Word boundary match (e.g., "salaries" matches "salary")
@@ -82,9 +96,14 @@ function matchKeywords(input: string, keywords: string[]): number {
     
     for (const inputWord of inputWords) {
       for (const keywordWord of keywordWords) {
-        const similarity = calculateSimilarity(inputWord, keywordWord);
-        if (similarity > 0.8) {
-          maxScore = Math.max(maxScore, similarity * 0.9);
+        // Prevent partial matches like "sia" in "alesia"
+        if (inputWord === keywordWord) {
+          maxScore = Math.max(maxScore, 0.95);
+        } else if (inputWord.length >= 4 && keywordWord.length >= 4) {
+          const similarity = calculateSimilarity(inputWord, keywordWord);
+          if (similarity > 0.8) {
+            maxScore = Math.max(maxScore, similarity * 0.9);
+          }
         }
       }
     }
@@ -98,21 +117,41 @@ function matchKeywords(input: string, keywords: string[]): number {
  */
 export function matchProperty(input: string, comment?: string): MatchResult {
   if (!input && !comment) {
-    return { value: 'Sia Moon', confidence: 0.5, matched: false };
+    return { value: 'Sia Moon - Land - General', confidence: 0.5, matched: false };
   }
 
   const searchText = `${input} ${comment || ''}`.toLowerCase().trim();
-  let bestMatch = { value: 'Sia Moon', confidence: 0.0, matched: false };
+  let bestMatch = { value: 'Sia Moon - Land - General', confidence: 0.0, matched: false };
 
-  // Try exact match first
+  // Priority shortcuts - exact matches for common property names
+  const shortcuts: Record<string, string> = {
+    'alesia': 'Alesia House',
+    'lanna': 'Lanna House',
+    'parents': 'Parents House',
+    'sia': 'Sia Moon - Land - General',
+    'sia moon': 'Sia Moon - Land - General',
+    'shaun': 'Shaun Ducker',
+    'maria': 'Maria Ren',
+    'family': 'Family'
+  };
+
+  // Check for exact shortcut matches first
+  const inputWords = searchText.split(/\s+/);
+  for (const word of inputWords) {
+    if (shortcuts[word]) {
+      return { value: shortcuts[word], confidence: 1.0, matched: true };
+    }
+  }
+
+  // Try exact match against full property names
   for (const property of options.properties) {
     if (searchText.toLowerCase() === property.toLowerCase()) {
       return { value: property, confidence: 1.0, matched: true };
     }
   }
 
-  // Try keyword matching
-  const keywords = options.keywords.property as Record<string, string[]>;
+  // Try keyword matching with improved scoring
+  const keywords = options.keywords.properties as Record<string, string[]>;
   for (const [property, propertyKeywords] of Object.entries(keywords)) {
     const score = matchKeywords(searchText, propertyKeywords);
     if (score > bestMatch.confidence) {
@@ -120,17 +159,17 @@ export function matchProperty(input: string, comment?: string): MatchResult {
     }
   }
 
-  // Try direct similarity matching
+  // Try direct similarity matching as fallback
   for (const property of options.properties) {
     const score = calculateSimilarity(searchText, property);
-    if (score > bestMatch.confidence) {
+    if (score > bestMatch.confidence && score >= 0.7) {
       bestMatch = { value: property, confidence: score, matched: score >= 0.8 };
     }
   }
 
   // Default to Sia Moon if no good match
   if (!bestMatch.matched) {
-    return { value: 'Sia Moon', confidence: 0.5, matched: false };
+    return { value: 'Sia Moon - Land - General', confidence: 0.5, matched: false };
   }
 
   return bestMatch;
@@ -141,11 +180,11 @@ export function matchProperty(input: string, comment?: string): MatchResult {
  */
 export function matchTypeOfOperation(input: string, comment?: string): MatchResult {
   if (!input && !comment) {
-    return { value: 'Uncategorized', confidence: 0.0, matched: false };
+    return { value: '', confidence: 0.0, matched: false };
   }
 
   const searchText = `${input} ${comment || ''}`.toLowerCase().trim();
-  let bestMatch = { value: 'Uncategorized', confidence: 0.0, matched: false };
+  let bestMatch = { value: '', confidence: 0.0, matched: false };
 
   // Try exact match first
   for (const operation of options.typeOfOperation) {
