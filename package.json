@@ -7,13 +7,17 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "node test-all.js",
+    "test:quick": "node test-all.js --skip-build",
+    "test:verbose": "node test-all.js --verbose",
     "dev:persistent": "chmod +x scripts/persistent-server.sh && ./scripts/persistent-server.sh",
     "dev:status": "tail -f server.log",
     "dev:stop": "kill $(cat .server.pid 2>/dev/null) 2>/dev/null || echo 'No server running'",
     "dev:check": "lsof -i :3000 || echo 'Port 3000 is free'",
     "inspect-sheet": "node scripts/inspect-sheet-validation.js",
     "fetch-dropdowns": "node scripts/fetch-dropdown-values.js",
-    "sync-dropdowns": "node scripts/fetch-live-dropdowns.js"
+    "sync-dropdowns": "node scripts/fetch-live-dropdowns.js",
+    "sync": "node sync-sheets.js"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.16",

@@ -122,22 +122,30 @@ function parseDate(input: string): { day: string; month: string; year: string } 
 
 /**
  * Extract property from input using keyword matching
+ * PRIORITY: Property detection is the PRIMARY goal for quick entry
  */
 function extractProperty(input: string): string | null {
   const result = matchProperty(input);
-  
+
   // Lower threshold for property matching - accept any match with confidence > 0.5
   let finalResult = result.confidence > 0.5 ? result.value : null;
-  
+
   // Emergency fallback - direct keyword search for critical properties
+  // IMPORTANT: Check for exact word matches to avoid false positives
   if (!finalResult) {
     const lowerInput = input.toLowerCase();
-    if (lowerInput.includes('alesia')) finalResult = 'Alesia House';
-    else if (lowerInput.includes('lanna')) finalResult = 'Lanna House';
-    else if (lowerInput.includes('parents') || lowerInput.includes('parent')) finalResult = 'Parents House';
-    else if (lowerInput.includes('sia') || lowerInput.includes('moon')) finalResult = 'Sia Moon - Land - General';
+    const words = lowerInput.split(/[\s\-,]+/); // Split by space, dash, or comma
+
+    // Check for exact word matches first (highest priority)
+    if (words.includes('family')) finalResult = 'Family';
+    else if (words.includes('shaun')) finalResult = 'Shaun Ducker';
+    else if (words.includes('maria')) finalResult = 'Maria Ren';
+    else if (words.includes('alesia')) finalResult = 'Alesia House';
+    else if (words.includes('lanna')) finalResult = 'Lanna House';
+    else if (words.includes('parents') || words.includes('parent')) finalResult = 'Parents House';
+    else if (words.includes('sia') || words.includes('moon')) finalResult = 'Sia Moon - Land - General';
   }
-  
+
   return finalResult;
 }
 

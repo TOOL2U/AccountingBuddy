@@ -177,12 +177,13 @@ SMART CATEGORIZATION RULES:
    - "electric bill", "electricity bill", "power bill", "utility electric" → "EXP - Utilities  - Electricity"
    - "electrical repair", "electrician", "electric maintenance" → "EXP - Repairs & Maintenance - Electrical & Mechanical"
    - "wall", "materials", "construction" → "EXP - Construction - Wall"
+   - "roof", "roofing", "tiles", "roof tiles", "ceiling" → "EXP - Construction - Structure"
+   - "paint", "painting", "painter" → "EXP - Repairs & Maintenance - Painting & Decoration"
    - "aircon", "air purifier", "electronics" → "EXP - Appliances & Electronics"
    - "door", "window", "lock", "hardware" → "EXP - Windows, Doors, Locks & Hardware"
    - "furniture", "decorative", "decor", "decoration", "art", "vase", "pillow" → "EXP - Repairs & Maintenance  - Furniture & Decorative Items"
-   - "painting", "paint", "painter", "decorative painting" → "EXP - Repairs & Maintenance - Painting & Decoration"
    - "salary", "salaries", "staff" → "EXP - HR - Employees Salaries"
-   - If NO CLEAR MATCH from above categories → leave "typeOfOperation" as empty string ""
+   - **CRITICAL: If NO CLEAR MATCH or UNCERTAIN → leave "typeOfOperation" as empty string "". DO NOT GUESS. User will select manually.**
 
 3. Payment Methods:
    - "cash" → "Cash"

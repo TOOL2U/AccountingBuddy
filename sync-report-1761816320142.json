@@ -1,0 +1,77 @@
+{
+  "timestamp": "2025-10-30T09:25:20.142Z",
+  "summary": {
+    "dropdownChanges": 2,
+    "appsScriptModified": true,
+    "dryRun": false
+  },
+  "changes": {
+    "typeOfOperation": {
+      "added": [
+        "OVERHEAD EXPENSES",
+        "EXP - Family - Toiletries"
+      ],
+      "removed": [],
+      "total": 33
+    },
+    "properties": {
+      "added": [],
+      "removed": [],
+      "total": 7
+    },
+    "typeOfPayment": {
+      "added": [],
+      "removed": [],
+      "total": 4
+    }
+  },
+  "pnlStructure": {
+    "overheadStart": 30,
+    "overheadEnd": 57,
+    "overheadCount": 28,
+    "propertyPersonStart": null,
+    "propertyPersonEnd": null
+  },
+  "namedRanges": {
+    "Year_Property_Person_Expense": {
+      "row": 21,
+      "sheet": 637199885
+    },
+    "Month_GOP": {
+      "row": 61,
+      "sheet": 637199885
+    },
+    "Month_Total_Revenue": {
+      "row": 11,
+      "sheet": 637199885
+    },
+    "Month_Total_Overheads": {
+      "row": 58,
+      "sheet": 637199885
+    },
+    "Month_EBITDA_Margin": {
+      "row": 62,
+      "sheet": 637199885
+    },
+    "Year_Total_Overheads": {
+      "row": 58,
+      "sheet": 637199885
+    },
+    "Year_Total_Revenue": {
+      "row": 11,
+      "sheet": 637199885
+    },
+    "Year_GOP": {
+      "row": 61,
+      "sheet": 637199885
+    },
+    "Month_Property_Person_Expense": {
+      "row": 21,
+      "sheet": 637199885
+    },
+    "Year_EBITDA_Margin": {
+      "row": 62,
+      "sheet": 637199885
+    }
+  }
+}

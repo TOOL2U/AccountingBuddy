@@ -1,6 +1,6 @@
 /**
  * Google Apps Script - Accounting Buddy Webhook + Dynamic P&L + Inbox + Balance Management
- * Version 8.4 (V8)
+ * Version 8.3 (V8)
  *
  * DEPLOYMENT INSTRUCTIONS:
  * 1. Open your Google Sheet → Extensions → Apps Script
@@ -773,9 +773,9 @@ function handleGetPropertyPersonDetails(period) {
       return createErrorResponse('P&L sheet not found. Looking for: "P&L (DO NOT EDIT)"');
     }
 
-    // Property/Person names are in rows 14-20, column A
-    // Property/Person values are in rows 14-20, column N (month) or Q (year)
-    const nameRange = sheet.getRange("A14:A20");
+    // Property/Person names are in rows 14-19, column A
+    // Property/Person values are in rows 14-19, column N (month) or Q (year)
+    const nameRange = sheet.getRange("A14:A19");
     const nameValues = nameRange.getValues();
     
     // Determine which column to use based on period
@@ -805,7 +805,7 @@ function handleGetPropertyPersonDetails(period) {
       Logger.log('Using year column: Q');
     }
     
-    const valueRange = sheet.getRange(valueColumn + "14:" + valueColumn + "20");
+    const valueRange = sheet.getRange(valueColumn + "14:" + valueColumn + "19");
     const valueValues = valueRange.getValues();
     
     // Build the data array
@@ -882,10 +882,10 @@ function handleGetOverheadExpensesDetails(period) {
       return createErrorResponse('P&L sheet not found. Looking for: "P&L (DO NOT EDIT)"');
     }
 
-    // Overhead expenses are in rows 31-58 (28 rows), column A
-    // Updated 2025-10-30: Row range shifted due to P&L structure change
-    const startRow = 31;
-    const endRow = 58;  // Updated from 57 to 58
+    // Overhead expenses are in rows 29-52 (24 rows), column A
+    // Updated 2025-10-30: Added row 52 for new expense category
+    const startRow = 30;
+    const endRow = 57;  // Updated from 56 to 57
     const numRows = endRow - startRow + 1; // 28 rows
     
     // Get expense names (column A)

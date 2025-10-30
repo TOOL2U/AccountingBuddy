@@ -77,7 +77,10 @@ ENHANCED PARSING RULES:
    - "sia moon" → "Sia Moon - Land - General" (default)
    - "alesia house" → "Alesia House"
    - "lanna house" → "Lanna House"
-   - "parents house" → "Parents House"
+   - "parents house", "parents" → "Parents House"
+   - "shaun ducker", "shaun" → "Shaun Ducker"
+   - "maria ren", "maria" → "Maria Ren"
+   - "family" (standalone) → "Family"
    - If unclear → "Sia Moon - Land - General"
 
 2. **Smart Operation Categorization**:

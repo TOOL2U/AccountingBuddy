@@ -126,10 +126,13 @@ export function matchProperty(input: string, comment?: string): MatchResult {
   // Priority shortcuts - exact matches for common property names
   const shortcuts: Record<string, string> = {
     'alesia': 'Alesia House',
-    'lanna': 'Lanna House', 
+    'lanna': 'Lanna House',
     'parents': 'Parents House',
     'sia': 'Sia Moon - Land - General',
-    'sia moon': 'Sia Moon - Land - General'
+    'sia moon': 'Sia Moon - Land - General',
+    'shaun': 'Shaun Ducker',
+    'maria': 'Maria Ren',
+    'family': 'Family'
   };
 
   // Check for exact shortcut matches first

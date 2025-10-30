@@ -164,9 +164,13 @@ export default function UploadPage() {
       }
 
       // CRITICAL: Add selected category from search box AFTER AI processing (should never be overridden)
+      // If user selected a Type of Operation → Use it 100% (ignore AI)
+      // If user didn't select → Use AI result (which may be empty if AI not confident)
       if (selectedCategory) {
-        console.log(`[MANUAL] OVERRIDING with search box selection: ${selectedCategory}`);
+        console.log(`[MANUAL] ✅ User selected Type of Operation: ${selectedCategory} (100% priority - ignoring AI)`);
         dataToPass.typeOfOperation = selectedCategory;
+      } else {
+        console.log(`[MANUAL] ℹ️ No Type of Operation selected by user - using AI result: "${dataToPass.typeOfOperation || '(empty - will show Select operation type)'}"`);
       }
 
       // CRITICAL: Add selected payment type from search box (REQUIRED)

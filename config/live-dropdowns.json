@@ -4,17 +4,19 @@
     "Alesia House",
     "Lanna House",
     "Parents House",
-    "Shaun Ducker",
-    "Maria Ren"
+    "Shaun Ducker - Personal",
+    "Maria Ren - Personal",
+    "Family"
   ],
   "typeOfOperation": [
-    "Revenue - Commision ",
-    "Revenue - Sales ",
+    "Revenue - Commision",
+    "Revenue - Sales",
     "Revenue - Services",
     "Revenue - Rental Income",
     "EXP - Utilities - Gas",
     "EXP - Utilities - Water",
     "EXP - Utilities  - Electricity",
+    "OVERHEAD EXPENSES",
     "EXP - Administration & General - License & Certificates",
     "EXP - Construction - Structure",
     "EXP - Construction - Overheads/General/Unclassified",
@@ -23,19 +25,23 @@
     "EXP - Administration & General - Professional fees",
     "EXP - Administration & General - Office supplies",
     "EXP - Administration & General  - Subscription, Software & Membership",
-    "EXP - Construction - Electric Supplies ",
+    "EXP - Construction - Electric Supplies",
     "EXP - Appliances & Electronics",
     "EXP - Windows, Doors, Locks & Hardware",
-    "EXP - Repairs & Maintenance  - Furniture & Decorative Items ",
+    "EXP - Repairs & Maintenance  - Furniture & Decorative Items",
     "EXP - Repairs & Maintenance  - Waste removal",
-    "EXP - Repairs & Maintenance - Tools & Equipment ",
+    "EXP - Repairs & Maintenance - Tools & Equipment",
     "EXP - Repairs & Maintenance - Painting & Decoration",
     "EXP - Repairs & Maintenance - Electrical & Mechanical",
     "EXP - Repairs & Maintenance - Landscaping",
     "EXP - Sales & Marketing -  Professional Marketing Services",
     "EXP - Construction - Wall",
     "EXP - Other Expenses",
-    "EXP - Personal - Massage"
+    "EXP - Personal - Massage",
+    "EXP - Household - Alcohol",
+    "EXP - Household - Groceries",
+    "EXP - Household - Nappies",
+    "EXP - Household - Toiletries"
   ],
   "typeOfPayment": [
     "Bank Transfer - Bangkok Bank - Shaun Ducker",
@@ -43,7 +49,7 @@
     "Bank transfer - Krung Thai Bank - Family Account",
     "Cash"
   ],
-  "extractedAt": "2025-10-29T08:35:32.774Z",
+  "extractedAt": "2025-10-30T09:38:11.977Z",
   "source": "google_sheets_api",
   "ranges": {
     "property": "Data!A38:A43",
@@ -70,5 +76,5 @@
       "Sample"
     ]
   },
-  "fetchedAt": "2025-10-30T07:00:14.838Z"
+  "fetchedAt": "2025-10-30T09:38:11.978Z"
 }
