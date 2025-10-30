@@ -75,6 +75,7 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('📊 Fetching fresh P&L data from Google Sheets...');
+    console.log('🔐 Using secret (first 10 chars):', secret?.substring(0, 10));
 
     // Fetch data from Apps Script endpoint
     const response = await fetch(pnlUrl, {
