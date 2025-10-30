@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
-
-if (!APPS_SCRIPT_URL) {
-  console.error('❌ APPS_SCRIPT_URL is not defined in environment variables');
-}
-
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const period = searchParams.get('period') as 'month' | 'year' | null;
@@ -17,22 +11,34 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (!APPS_SCRIPT_URL) {
+  const scriptUrl = process.env.SHEETS_WEBHOOK_URL;
+  const secret = process.env.SHEETS_WEBHOOK_SECRET;
+
+  if (!scriptUrl) {
+    console.error('❌ SHEETS_WEBHOOK_URL is not defined in environment variables');
     return NextResponse.json(
-      { ok: false, error: 'Apps Script URL not configured' },
+      { ok: false, error: 'Apps Script URL not configured. Please set SHEETS_WEBHOOK_URL in environment variables.' },
+      { status: 500 }
+    );
+  }
+
+  if (!secret) {
+    console.error('❌ SHEETS_WEBHOOK_SECRET is not defined in environment variables');
+    return NextResponse.json(
+      { ok: false, error: 'Webhook secret not configured. Please set SHEETS_WEBHOOK_SECRET in environment variables.' },
       { status: 500 }
     );
   }
 
   try {
-    const response = await fetch(APPS_SCRIPT_URL, {
+    const response = await fetch(scriptUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'getOverheadExpensesDetails',
-        secret: process.env.APPS_SCRIPT_SECRET || '',
+        secret: secret,
         period,
       }),
     });
@@ -74,21 +80,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!APPS_SCRIPT_URL) {
+    const scriptUrl = process.env.SHEETS_WEBHOOK_URL;
+    const secret = process.env.SHEETS_WEBHOOK_SECRET;
+
+    if (!scriptUrl) {
+      console.error('❌ SHEETS_WEBHOOK_URL is not defined in environment variables');
       return NextResponse.json(
-        { ok: false, error: 'Apps Script URL not configured' },
+        { ok: false, error: 'Apps Script URL not configured. Please set SHEETS_WEBHOOK_URL in environment variables.' },
         { status: 500 }
       );
     }
 
-    const response = await fetch(APPS_SCRIPT_URL, {
+    if (!secret) {
+      console.error('❌ SHEETS_WEBHOOK_SECRET is not defined in environment variables');
+      return NextResponse.json(
+        { ok: false, error: 'Webhook secret not configured. Please set SHEETS_WEBHOOK_SECRET in environment variables.' },
+        { status: 500 }
+      );
+    }
+
+    const response = await fetch(scriptUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'getOverheadExpensesDetails',
-        secret: process.env.APPS_SCRIPT_SECRET || '',
+        secret: secret,
         period,
       }),
     });

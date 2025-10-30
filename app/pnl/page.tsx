@@ -181,8 +181,6 @@ export default function PnLPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>('');
-  const [warnings, setWarnings] = useState<string[]>([]);
-  const [computedFallbacks, setComputedFallbacks] = useState<string[]>([]);
   
   // Modal state for Property/Person
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -226,11 +224,7 @@ export default function PnLPage() {
         minute: '2-digit'
       }));
 
-      // Store warnings and computed fallbacks
-      setWarnings(result.warnings || []);
-      setComputedFallbacks(result.computedFallbacks || []);
-
-      // Log to console for debugging
+      // Log warnings and computed fallbacks to console for debugging (visible in admin page)
       if (result.warnings && result.warnings.length > 0) {
         console.warn('⚠️ P&L Warnings:', result.warnings);
       }
@@ -286,38 +280,6 @@ export default function PnLPage() {
             <p className="text-xs text-text-tertiary mt-1">
               Last updated: {lastUpdated}
             </p>
-          )}
-
-          {/* Warnings and Computed Fallbacks */}
-          {(warnings.length > 0 || computedFallbacks.length > 0) && !isLoading && (
-            <div className="mt-4 space-y-2">
-              {warnings.length > 0 && (
-                <div className="flex items-start gap-2 p-3 bg-status-warning/10 border border-status-warning/20 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-status-warning flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-status-warning mb-1">Warnings</p>
-                    <ul className="text-xs text-text-secondary space-y-1">
-                      {warnings.map((warning, i) => (
-                        <li key={i}>• {warning}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-              {computedFallbacks.length > 0 && (
-                <div className="flex items-start gap-2 p-3 bg-brand-primary/10 border border-brand-primary/20 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-brand-primary flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-brand-primary mb-1">Computed Values</p>
-                    <ul className="text-xs text-text-secondary space-y-1">
-                      {computedFallbacks.map((fallback, i) => (
-                        <li key={i}>• {fallback}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
           )}
         </motion.div>
 
