@@ -65,8 +65,7 @@ export async function GET(request: NextRequest) {
     // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
     // Apps Script returns HTTP 302 redirects - we must NOT follow them automatically
     // because fetch() converts POST to GET when following redirects, losing the body
-    // Note: Apps Script returns HTTP 302 redirects - we let fetch() follow them automatically
-    const response = await fetch(webhookUrl, {
+    let response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
@@ -74,9 +73,18 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({
         action: 'getInbox',
         secret: secret
-      })
-      // redirect: 'follow' is the default - fetch will automatically follow redirects
+      }),
+      redirect: 'manual'  // Apps Script returns 302 - don't auto-follow
     });
+
+    // Handle Apps Script 302 redirect
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following 302 redirect...');
+        response = await fetch(location);
+      }
+    }
 
     if (!response.ok) {
       console.error('❌ Apps Script returned error:', response.status, response.statusText);
@@ -171,8 +179,7 @@ export async function DELETE(request: NextRequest) {
     // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
     // Apps Script returns HTTP 302 redirects - we must NOT follow them automatically
     // because fetch() converts POST to GET when following redirects, losing the body
-    // Note: Apps Script returns HTTP 302 redirects - we let fetch() follow them automatically
-    const response = await fetch(webhookUrl, {
+    let response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
@@ -181,9 +188,18 @@ export async function DELETE(request: NextRequest) {
         action: 'deleteEntry',
         secret: secret,
         rowNumber: rowNumber
-      })
-      // redirect: 'follow' is the default - fetch will automatically follow redirects
+      }),
+      redirect: 'manual'  // Apps Script returns 302 - don't auto-follow
     });
+
+    // Handle Apps Script 302 redirect
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following 302 redirect...');
+        response = await fetch(location);
+      }
+    }
 
     if (!response.ok) {
       console.error('❌ Apps Script returned error:', response.status, response.statusText);

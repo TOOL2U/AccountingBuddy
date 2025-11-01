@@ -105,15 +105,23 @@ export async function POST(request: NextRequest) {
     // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
     // Apps Script returns HTTP 302 redirects - we must NOT follow them automatically
     // because fetch() converts POST to GET when following redirects, losing the body
-    // Note: Apps Script returns HTTP 302 redirects - we let fetch() follow them automatically
-    const response = await fetch(webhookUrl, {
+    let response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
       },
-      body: JSON.stringify(payload)
-      // redirect: 'follow' is the default - fetch will automatically follow redirects
+      body: JSON.stringify(payload),
+      redirect: 'manual'  // Apps Script returns 302 - don't auto-follow
     });
+
+    // Handle Apps Script 302 redirect
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following 302 redirect...');
+        response = await fetch(location);
+      }
+    }
 
     if (!response.ok) {
       const errorText = await response.text();

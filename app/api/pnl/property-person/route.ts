@@ -23,8 +23,7 @@ async function fetchPropertyPersonData(period: string) {
 
   // Apps Script returns HTTP 302 redirects - we must NOT follow them automatically
   // because fetch() converts POST to GET when following redirects, losing the body
-  // Note: Apps Script returns HTTP 302 redirects - we let fetch() follow them automatically
-  const response = await fetch(scriptUrl, {
+  let response = await fetch(scriptUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -33,9 +32,18 @@ async function fetchPropertyPersonData(period: string) {
       action: 'getPropertyPersonDetails',
       period: period,
       secret: secret
-    })
-    // redirect: 'follow' is the default - fetch will automatically follow redirects
+    }),
+    redirect: 'manual'  // Apps Script returns 302 - don't auto-follow
   });
+
+  // Handle Apps Script 302 redirect
+  if (response.status === 302) {
+    const location = response.headers.get('location');
+    if (location) {
+      console.log('📍 Following 302 redirect...');
+      response = await fetch(location);
+    }
+  }
 
   if (!response.ok) {
     throw new Error(`Apps Script responded with status: ${response.status}`);

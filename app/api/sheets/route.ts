@@ -94,17 +94,26 @@ export async function POST(request: NextRequest) {
     // (Apps Script has better support for body params than headers)
     console.log('[SHEETS] Sending to webhook with secret in POST body...');
 
-    const response = await fetch(SHEETS_WEBHOOK_URL, {
+    let response = await fetch(SHEETS_WEBHOOK_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         ...normalizedData,
         secret: SHEETS_WEBHOOK_SECRET, // Send secret in body for better Apps Script compatibility
       }),
-      redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
+      redirect: 'manual'  // Apps Script returns 302 - don't auto-follow
     });
+
+    // Handle Apps Script 302 redirect
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('[SHEETS] Following 302 redirect to:', location.substring(0, 100) + '...');
+        response = await fetch(location);
+      }
+    }
 
     // Check if webhook call was successful
     if (!response.ok) {

@@ -40,8 +40,7 @@ export async function GET(request: NextRequest) {
     // Call Apps Script discovery endpoint
     // Apps Script returns HTTP 302 redirects - we must NOT follow them automatically
     // because fetch() converts POST to GET when following redirects, losing the body
-    // Note: Apps Script returns HTTP 302 redirects - we let fetch() follow them automatically
-    const response = await fetch(pnlUrl, {
+    let response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,11 +48,20 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({
         action: 'list_named_ranges',
         secret: secret
-      })
-      // redirect: 'follow' is the default - fetch will automatically follow redirects
+      }),
+      redirect: 'manual'  // Apps Script returns 302 - don't auto-follow
     });
 
     console.log('[NAMED_RANGES] Apps Script response status:', response.status);
+
+    // Handle Apps Script 302 redirect
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following 302 redirect...');
+        response = await fetch(location);
+      }
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -113,8 +121,7 @@ export async function POST(request: NextRequest) {
 
     // Apps Script returns HTTP 302 redirects - we must NOT follow them automatically
     // because fetch() converts POST to GET when following redirects, losing the body
-    // Note: Apps Script returns HTTP 302 redirects - we let fetch() follow them automatically
-    const response = await fetch(pnlUrl, {
+    let response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -122,9 +129,18 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         action: 'list_named_ranges',
         secret: secret
-      })
-      // redirect: 'follow' is the default - fetch will automatically follow redirects
+      }),
+      redirect: 'manual'  // Apps Script returns 302 - don't auto-follow
     });
+
+    // Handle Apps Script 302 redirect
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following 302 redirect...');
+        response = await fetch(location);
+      }
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
