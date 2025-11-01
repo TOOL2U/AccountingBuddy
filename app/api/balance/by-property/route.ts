@@ -60,8 +60,17 @@ const CACHE_TTL = 30 * 1000; // 30 seconds
  */
 async function fetchUploadedBalances(): Promise<Map<string, UploadedBalance>> {
   try {
+    // Use environment variable for credentials (works in both local and production)
+    const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+
+    if (!credentialsJson) {
+      throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY environment variable not set');
+    }
+
+    const credentials = JSON.parse(credentialsJson);
+
     const auth = new google.auth.GoogleAuth({
-      keyFile: path.join(process.cwd(), 'accounting-buddy-476114-82555a53603b.json'),
+      credentials,
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
