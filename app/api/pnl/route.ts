@@ -95,13 +95,16 @@ export async function GET(request: NextRequest) {
       redirect: 'manual'  // Don't auto-follow (would convert POST to GET)
     });
 
+    console.log('📡 Initial response status:', response.status);
+
     // Handle 302 redirect - fetch the redirect URL (Apps Script cached response)
-    // Note: The redirect URL is a GET endpoint with the cached response
     if (response.status === 302) {
       const location = response.headers.get('location');
+      console.log('📍 Redirect location:', location);
       if (location) {
         console.log('📍 Following redirect to cached response...');
         response = await fetch(location);  // GET request to cached response
+        console.log('📡 Redirect response status:', response.status);
       }
     }
 
