@@ -402,7 +402,6 @@ export default function PnLPage() {
         period={overheadModalPeriod}
         totalExpense={overheadModalTotalExpense}
       />
-        </motion.div>
       </div>
     </AdminShell>
   );
