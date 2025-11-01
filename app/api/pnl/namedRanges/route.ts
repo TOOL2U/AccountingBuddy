@@ -40,31 +40,20 @@ export async function GET(request: NextRequest) {
     // Call Apps Script discovery endpoint
     // Apps Script returns HTTP 302 redirects - we must NOT follow them automatically
     // because fetch() converts POST to GET when following redirects, losing the body
-    const requestBody = JSON.stringify({
-      action: 'list_named_ranges',
-      secret: secret
-    });
-
-    let response = await fetch(pnlUrl, {
+    // Note: Apps Script returns HTTP 302 redirects - we let fetch() follow them automatically
+    const response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: requestBody,
-      redirect: 'manual'  // Don't auto-follow (would convert POST to GET)
+      body: JSON.stringify({
+        action: 'list_named_ranges',
+        secret: secret
+      })
+      // redirect: 'follow' is the default - fetch will automatically follow redirects
     });
 
     console.log('[NAMED_RANGES] Apps Script response status:', response.status);
-
-    // Handle 302 redirect - fetch the redirect URL (Apps Script cached response)
-    // Note: The redirect URL is a GET endpoint with the cached response
-    if (response.status === 302) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log('📍 Following redirect to cached response...');
-        response = await fetch(location);  // GET request to cached response
-      }
-    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -124,29 +113,18 @@ export async function POST(request: NextRequest) {
 
     // Apps Script returns HTTP 302 redirects - we must NOT follow them automatically
     // because fetch() converts POST to GET when following redirects, losing the body
-    const requestBody = JSON.stringify({
-      action: 'list_named_ranges',
-      secret: secret
-    });
-
-    let response = await fetch(pnlUrl, {
+    // Note: Apps Script returns HTTP 302 redirects - we let fetch() follow them automatically
+    const response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: requestBody,
-      redirect: 'manual'  // Don't auto-follow (would convert POST to GET)
+      body: JSON.stringify({
+        action: 'list_named_ranges',
+        secret: secret
+      })
+      // redirect: 'follow' is the default - fetch will automatically follow redirects
     });
-
-    // Handle 302 redirect - fetch the redirect URL (Apps Script cached response)
-    // Note: The redirect URL is a GET endpoint with the cached response
-    if (response.status === 302) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log('📍 Following redirect to cached response...');
-        response = await fetch(location);  // GET request to cached response
-      }
-    }
 
     if (!response.ok) {
       const errorText = await response.text();

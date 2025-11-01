@@ -65,29 +65,18 @@ export async function GET(request: NextRequest) {
     // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
     // Apps Script returns HTTP 302 redirects - we must NOT follow them automatically
     // because fetch() converts POST to GET when following redirects, losing the body
-    const requestBody = JSON.stringify({
-      action: 'getInbox',
-      secret: secret
-    });
-
-    let response = await fetch(webhookUrl, {
+    // Note: Apps Script returns HTTP 302 redirects - we let fetch() follow them automatically
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
       },
-      body: requestBody,
-      redirect: 'manual'  // Don't auto-follow (would convert POST to GET)
+      body: JSON.stringify({
+        action: 'getInbox',
+        secret: secret
+      })
+      // redirect: 'follow' is the default - fetch will automatically follow redirects
     });
-
-    // Handle 302 redirect - fetch the redirect URL (Apps Script cached response)
-    // Note: The redirect URL is a GET endpoint with the cached response
-    if (response.status === 302) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log('📍 Following redirect to cached response...');
-        response = await fetch(location);  // GET request to cached response
-      }
-    }
 
     if (!response.ok) {
       console.error('❌ Apps Script returned error:', response.status, response.statusText);
@@ -182,30 +171,19 @@ export async function DELETE(request: NextRequest) {
     // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
     // Apps Script returns HTTP 302 redirects - we must NOT follow them automatically
     // because fetch() converts POST to GET when following redirects, losing the body
-    const requestBody = JSON.stringify({
-      action: 'deleteEntry',
-      secret: secret,
-      rowNumber: rowNumber
-    });
-
-    let response = await fetch(webhookUrl, {
+    // Note: Apps Script returns HTTP 302 redirects - we let fetch() follow them automatically
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
       },
-      body: requestBody,
-      redirect: 'manual'  // Don't auto-follow (would convert POST to GET)
+      body: JSON.stringify({
+        action: 'deleteEntry',
+        secret: secret,
+        rowNumber: rowNumber
+      })
+      // redirect: 'follow' is the default - fetch will automatically follow redirects
     });
-
-    // Handle 302 redirect - fetch the redirect URL (Apps Script cached response)
-    // Note: The redirect URL is a GET endpoint with the cached response
-    if (response.status === 302) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log('📍 Following redirect to cached response...');
-        response = await fetch(location);  // GET request to cached response
-      }
-    }
 
     if (!response.ok) {
       console.error('❌ Apps Script returned error:', response.status, response.statusText);
