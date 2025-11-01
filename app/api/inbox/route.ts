@@ -62,7 +62,8 @@ export async function GET(request: NextRequest) {
     console.log('📥 Fetching fresh inbox data from Google Sheets...');
 
     // Fetch data from Apps Script endpoint
-    const response = await fetch(webhookUrl, {
+    // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
+    let response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
@@ -74,12 +75,21 @@ export async function GET(request: NextRequest) {
       redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
     });
 
+    // Handle 302 redirect from Apps Script (normal behavior)
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following redirect to cached response...');
+        response = await fetch(location);
+      }
+    }
+
     if (!response.ok) {
       console.error('❌ Apps Script returned error:', response.status, response.statusText);
       return NextResponse.json(
-        { 
-          ok: false, 
-          error: `Failed to fetch inbox data: ${response.statusText}` 
+        {
+          ok: false,
+          error: `Failed to fetch inbox data: ${response.statusText}`
         },
         { status: response.status }
       );
@@ -162,7 +172,8 @@ export async function DELETE(request: NextRequest) {
     console.log(`🗑️ Deleting entry at row ${rowNumber}...`);
 
     // Call Apps Script to delete the row
-    const response = await fetch(webhookUrl, {
+    // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
+    let response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
@@ -175,12 +186,21 @@ export async function DELETE(request: NextRequest) {
       redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
     });
 
+    // Handle 302 redirect from Apps Script (normal behavior)
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following redirect to cached response...');
+        response = await fetch(location);
+      }
+    }
+
     if (!response.ok) {
       console.error('❌ Apps Script returned error:', response.status, response.statusText);
       return NextResponse.json(
-        { 
-          ok: false, 
-          error: `Failed to delete entry: ${response.statusText}` 
+        {
+          ok: false,
+          error: `Failed to delete entry: ${response.statusText}`
         },
         { status: response.status }
       );

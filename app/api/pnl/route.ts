@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch data from Apps Script endpoint
     // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
-    const response = await fetch(pnlUrl, {
+    let response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
@@ -87,15 +87,25 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({
         action: 'getPnL',
         secret: secret
-      })
+      }),
+      redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
     });
+
+    // Handle 302 redirect from Apps Script (normal behavior)
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following redirect to cached response...');
+        response = await fetch(location);
+      }
+    }
 
     if (!response.ok) {
       console.error('❌ Apps Script returned error:', response.status, response.statusText);
       return NextResponse.json(
-        { 
-          ok: false, 
-          error: `Failed to fetch P&L data: ${response.statusText}` 
+        {
+          ok: false,
+          error: `Failed to fetch P&L data: ${response.statusText}`
         },
         { status: response.status }
       );

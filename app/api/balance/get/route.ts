@@ -36,7 +36,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch from Google Sheets
-    const response = await fetch(webhookUrl, {
+    // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
+    let response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
@@ -47,6 +48,15 @@ export async function POST(request: NextRequest) {
       }),
       redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
     });
+
+    // Handle 302 redirect from Apps Script (normal behavior)
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following redirect to cached response...');
+        response = await fetch(location);
+      }
+    }
 
     if (!response.ok) {
       const errorText = await response.text();

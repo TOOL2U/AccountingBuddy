@@ -21,10 +21,10 @@ async function fetchPropertyPersonData(period: string) {
     secret: '[REDACTED]'
   });
 
-  const response = await fetch(scriptUrl, {
+  let response = await fetch(scriptUrl, {
     method: 'POST',
     headers: {
-      'Content-Type': 'text/plain;charset=utf-8',
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       action: 'getPropertyPersonDetails',
@@ -33,6 +33,15 @@ async function fetchPropertyPersonData(period: string) {
     }),
     redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
   });
+
+  // Handle 302 redirect from Apps Script (normal behavior)
+  if (response.status === 302) {
+    const location = response.headers.get('location');
+    if (location) {
+      console.log('📍 Following redirect to cached response...');
+      response = await fetch(location);
+    }
+  }
 
   if (!response.ok) {
     throw new Error(`Apps Script responded with status: ${response.status}`);

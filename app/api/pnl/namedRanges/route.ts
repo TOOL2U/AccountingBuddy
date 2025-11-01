@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
     console.log('[NAMED_RANGES] URL:', pnlUrl);
     
     // Call Apps Script discovery endpoint
-    const response = await fetch(pnlUrl, {
+    let response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'list_named_ranges',
@@ -49,9 +49,18 @@ export async function GET(request: NextRequest) {
       }),
       redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
     });
-    
+
     console.log('[NAMED_RANGES] Apps Script response status:', response.status);
-    
+
+    // Handle 302 redirect from Apps Script (normal behavior)
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following redirect to cached response...');
+        response = await fetch(location);
+      }
+    }
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[NAMED_RANGES] Apps Script error:', errorText);
@@ -108,10 +117,10 @@ export async function POST(request: NextRequest) {
     
     console.log('[NAMED_RANGES] Calling Apps Script discovery endpoint (fresh)...');
     
-    const response = await fetch(pnlUrl, {
+    let response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         action: 'list_named_ranges',
@@ -119,7 +128,16 @@ export async function POST(request: NextRequest) {
       }),
       redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
     });
-    
+
+    // Handle 302 redirect from Apps Script (normal behavior)
+    if (response.status === 302) {
+      const location = response.headers.get('location');
+      if (location) {
+        console.log('📍 Following redirect to cached response...');
+        response = await fetch(location);
+      }
+    }
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[NAMED_RANGES] Apps Script error:', errorText);
