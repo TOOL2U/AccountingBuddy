@@ -2,11 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import AdminShell from '@/components/layout/AdminShell';
-import { Wallet, TrendingUp, TrendingDown, Clock, AlertTriangle } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Balance {
   bankName: string;
   balance: number;
+  uploadedBalance?: number;
+  uploadedDate?: string;
+  totalRevenue?: number;
+  totalExpense?: number;
+  transactionCount?: number;
+  variance?: number;
   timestamp?: string;
 }
 
@@ -15,39 +21,41 @@ export default function BalanceAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  useEffect(() => {
-    async function fetchBalances() {
-      try {
-        const res = await fetch('/api/balance/get', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
-        });
-        const data = await res.json();
+  const fetchBalances = async () => {
+    setLoading(true);
+    try {
+      // Use the running balance endpoint that tracks expenses
+      const res = await fetch('/api/balance/by-property', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
 
-        if (data.ok && data.allBalances) {
-          // Convert allBalances object to array, filtering out the header row
-          const balancesArray = Object.values(data.allBalances).filter(
-            (b: any) => b.bankName !== 'Bank Name ' && b.balance !== 'Balance'
-          ) as Balance[];
-          setBalances(balancesArray);
-          
-          // Find most recent timestamp
-          const timestamps = balancesArray
-            .map(b => b.timestamp)
-            .filter((t): t is string => !!t);
-          if (timestamps.length > 0) {
-            const latest = new Date(Math.max(...timestamps.map(t => new Date(t).getTime())));
-            setLastUpdated(latest.toLocaleString());
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching balances:', error);
-      } finally {
-        setLoading(false);
+      if (data.ok && data.propertyBalances) {
+        // Map propertyBalances to Balance format
+        const balancesArray = data.propertyBalances.map((pb: any) => ({
+          bankName: pb.property,
+          balance: pb.balance || pb.uploadedBalance, // Use current balance, fallback to uploaded
+          uploadedBalance: pb.uploadedBalance,
+          uploadedDate: pb.uploadedDate,
+          totalRevenue: pb.totalRevenue,
+          totalExpense: pb.totalExpense,
+          transactionCount: pb.transactionCount,
+          variance: pb.variance,
+          timestamp: pb.uploadedDate
+        }));
+        setBalances(balancesArray);
+        setLastUpdated(new Date().toLocaleString());
       }
+    } catch (error) {
+      console.error('Error fetching balances:', error);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchBalances();
   }, []);
 
@@ -59,15 +67,26 @@ export default function BalanceAnalyticsPage() {
     <AdminShell>
       <div className="space-y-6">
         {/* Page header */}
-        <div>
-          <h1 className="text-3xl font-bold text-white">Cash & Bank Balances</h1>
-          <p className="text-slate-400 mt-1">Monitor your cash flow and bank accounts</p>
-          {lastUpdated && (
-            <p className="text-xs text-slate-500 mt-2 flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Last updated: {lastUpdated}
-            </p>
-          )}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Cash & Bank Balances</h1>
+            <p className="text-slate-400 mt-1">Monitor your cash flow and bank accounts</p>
+            {lastUpdated && (
+              <p className="text-xs text-slate-500 mt-2 flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Last updated: {lastUpdated}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={fetchBalances}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg transition-colors disabled:opacity-50 border border-slate-700/50"
+            aria-label="Refresh balances"
+          >
+            <RefreshCw className={`w-4 h-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
+            <span className="text-slate-300 text-sm">Refresh</span>
+          </button>
         </div>
 
         {/* Total Balance Card */}
@@ -169,6 +188,13 @@ export default function BalanceAnalyticsPage() {
                       {balance.timestamp && (
                         <p className="text-xs text-slate-500 mt-1">
                           Updated: {new Date(balance.timestamp).toLocaleDateString()}
+                        </p>
+                      )}
+                      {balance.transactionCount !== undefined && balance.transactionCount > 0 && (
+                        <p className="text-xs text-slate-400 mt-1">
+                          {balance.transactionCount} transaction{balance.transactionCount !== 1 ? 's' : ''} 
+                          {balance.totalExpense! > 0 && ` • -฿${balance.totalExpense!.toLocaleString()} expenses`}
+                          {balance.totalRevenue! > 0 && ` • +฿${balance.totalRevenue!.toLocaleString()} revenue`}
                         </p>
                       )}
                     </div>
