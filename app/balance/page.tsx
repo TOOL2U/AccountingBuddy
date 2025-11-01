@@ -25,14 +25,19 @@ export default function BalanceAnalyticsPage() {
         });
         const data = await res.json();
 
-        if (data.ok && data.data) {
-          setBalances(data.data);
+        if (data.ok && data.allBalances) {
+          // Convert allBalances object to array, filtering out the header row
+          const balancesArray = Object.values(data.allBalances).filter(
+            (b: any) => b.bankName !== 'Bank Name ' && b.balance !== 'Balance'
+          ) as Balance[];
+          setBalances(balancesArray);
+          
           // Find most recent timestamp
-          const timestamps = data.data
-            .map((b: Balance) => b.timestamp)
-            .filter(Boolean);
+          const timestamps = balancesArray
+            .map(b => b.timestamp)
+            .filter((t): t is string => !!t);
           if (timestamps.length > 0) {
-            const latest = new Date(Math.max(...timestamps.map((t: string) => new Date(t).getTime())));
+            const latest = new Date(Math.max(...timestamps.map(t => new Date(t).getTime())));
             setLastUpdated(latest.toLocaleString());
           }
         }
