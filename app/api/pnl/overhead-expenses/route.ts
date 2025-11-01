@@ -31,7 +31,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let response = await fetch(scriptUrl, {
+    // Note: Apps Script returns HTTP 302 redirects - let fetch follow them automatically
+    const response = await fetch(scriptUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -40,18 +41,9 @@ export async function GET(request: NextRequest) {
         action: 'getOverheadExpensesDetails',
         secret: secret,
         period,
-      }),
-      redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
+      })
+      // redirect: 'follow' is the default - fetch will automatically follow 302 redirects
     });
-
-    // Handle 302 redirect from Apps Script (normal behavior)
-    if (response.status === 302) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log('📍 Following redirect to cached response...');
-        response = await fetch(location);
-      }
-    }
 
     if (!response.ok) {
       throw new Error(`Apps Script responded with status: ${response.status}`);
@@ -109,7 +101,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let response = await fetch(scriptUrl, {
+    // Note: Apps Script returns HTTP 302 redirects - let fetch follow them automatically
+    const response = await fetch(scriptUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -118,18 +111,9 @@ export async function POST(request: NextRequest) {
         action: 'getOverheadExpensesDetails',
         secret: secret,
         period,
-      }),
-      redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
+      })
+      // redirect: 'follow' is the default - fetch will automatically follow 302 redirects
     });
-
-    // Handle 302 redirect from Apps Script (normal behavior)
-    if (response.status === 302) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log('📍 Following redirect to cached response...');
-        response = await fetch(location);
-      }
-    }
 
     if (!response.ok) {
       throw new Error(`Apps Script responded with status: ${response.status}`);

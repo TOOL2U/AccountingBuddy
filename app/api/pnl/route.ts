@@ -79,7 +79,8 @@ export async function GET(request: NextRequest) {
 
     // Fetch data from Apps Script endpoint
     // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
-    let response = await fetch(pnlUrl, {
+    // Note: Apps Script returns HTTP 302 redirects - let fetch follow them automatically
+    const response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8',
@@ -87,21 +88,14 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({
         action: 'getPnL',
         secret: secret
-      }),
-      redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
+      })
+      // redirect: 'follow' is the default - fetch will automatically follow 302 redirects
     });
-
-    // Handle 302 redirect from Apps Script (normal behavior)
-    if (response.status === 302) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log('📍 Following redirect to cached response...');
-        response = await fetch(location);
-      }
-    }
 
     if (!response.ok) {
       console.error('❌ Apps Script returned error:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('Error details:', errorText.substring(0, 200));
       return NextResponse.json(
         {
           ok: false,

@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
     console.log('[NAMED_RANGES] URL:', pnlUrl);
     
     // Call Apps Script discovery endpoint
-    let response = await fetch(pnlUrl, {
+    // Note: Apps Script returns HTTP 302 redirects - let fetch follow them automatically
+    const response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,20 +47,11 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({
         action: 'list_named_ranges',
         secret: secret
-      }),
-      redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
+      })
+      // redirect: 'follow' is the default - fetch will automatically follow 302 redirects
     });
 
     console.log('[NAMED_RANGES] Apps Script response status:', response.status);
-
-    // Handle 302 redirect from Apps Script (normal behavior)
-    if (response.status === 302) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log('📍 Following redirect to cached response...');
-        response = await fetch(location);
-      }
-    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -116,8 +108,9 @@ export async function POST(request: NextRequest) {
     // This endpoint just forces a fresh fetch by calling the discovery endpoint
     
     console.log('[NAMED_RANGES] Calling Apps Script discovery endpoint (fresh)...');
-    
-    let response = await fetch(pnlUrl, {
+
+    // Note: Apps Script returns HTTP 302 redirects - let fetch follow them automatically
+    const response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -125,18 +118,9 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         action: 'list_named_ranges',
         secret: secret
-      }),
-      redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
+      })
+      // redirect: 'follow' is the default - fetch will automatically follow 302 redirects
     });
-
-    // Handle 302 redirect from Apps Script (normal behavior)
-    if (response.status === 302) {
-      const location = response.headers.get('location');
-      if (location) {
-        console.log('📍 Following redirect to cached response...');
-        response = await fetch(location);
-      }
-    }
 
     if (!response.ok) {
       const errorText = await response.text();
