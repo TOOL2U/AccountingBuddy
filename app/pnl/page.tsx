@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, DollarSign, AlertCircle, RefreshCw } from 'lu
 import { uiStaggerContainer, cardAnimationVariants } from '@/hooks/usePageAnimations';
 import PropertyPersonModal from '@/components/PropertyPersonModal';
 import OverheadExpensesModal from '@/components/OverheadExpensesModal';
+import AdminShell from '@/components/layout/AdminShell';
 
 // Type definitions
 interface PnLPeriodData {
@@ -248,36 +249,34 @@ export default function PnLPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen page-pnl">
-      {/* Background gradient */}
-      <div className="fixed inset-0 bg-gradient-radial pointer-events-none" aria-hidden="true" />
-
-      <motion.div
-        className="relative max-w-7xl mx-auto px-2 md:px-4 py-8 md:py-12"
-        variants={uiStaggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Header */}
-        <motion.div className="mb-8" variants={cardAnimationVariants}>
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl md:text-4xl font-bold text-text-primary">
-              P&L Dashboard
-            </h1>
-            <button
-              onClick={fetchPnLData}
-              disabled={isLoading}
-              className="p-2 glass hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
-              aria-label="Refresh data"
-            >
-              <RefreshCw className={`w-5 h-5 text-text-secondary ${isLoading ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
-          <p className="text-text-secondary">
-            Live KPIs from your Google Sheet
-          </p>
+    <AdminShell>
+      <div className="relative">
+        <motion.div
+          className="relative max-w-7xl mx-auto"
+          variants={uiStaggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* Header */}
+          <motion.div className="mb-8" variants={cardAnimationVariants}>
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-white">
+                P&L Analytics
+              </h1>
+              <button
+                onClick={fetchPnLData}
+                disabled={isLoading}
+                className="p-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg transition-colors disabled:opacity-50 border border-slate-700/50"
+                aria-label="Refresh data"
+              >
+                <RefreshCw className={`w-5 h-5 text-slate-400 ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+            <p className="text-slate-400">
+              Detailed financial performance and breakdowns
+            </p>
           {lastUpdated && !isLoading && (
-            <p className="text-xs text-text-tertiary mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Last updated: {lastUpdated}
             </p>
           )}
@@ -285,7 +284,7 @@ export default function PnLPage() {
 
         {/* Month KPIs */}
         <motion.div variants={cardAnimationVariants}>
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
+          <h2 className="text-lg font-semibold text-white mb-4">
             Month to Date
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -333,7 +332,7 @@ export default function PnLPage() {
 
         {/* Year KPIs */}
         <motion.div variants={cardAnimationVariants}>
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
+          <h2 className="text-lg font-semibold text-white mb-4">
             Year to Date
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -403,7 +402,9 @@ export default function PnLPage() {
         period={overheadModalPeriod}
         totalExpense={overheadModalTotalExpense}
       />
-    </div>
+        </motion.div>
+      </div>
+    </AdminShell>
   );
 }
 

@@ -7,6 +7,7 @@ import { RefreshCw, Inbox as InboxIcon, Sparkles, Trash2, AlertCircle } from 'lu
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
+import AdminShell from '@/components/layout/AdminShell';
 
 interface Receipt {
   id: string;
@@ -95,96 +96,37 @@ export default function InboxPage() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="max-w-6xl mx-auto px-2 md:px-4 py-12 page-inbox"
-    >
-      {/* Header with stunning design */}
-      <div className="mb-8 text-center relative">
-        {/* Background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-status-info/10 rounded-full blur-3xl animate-pulse pointer-events-none" />
-
-        <motion.div
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{
-            type: 'spring',
-            stiffness: 200,
-            damping: 15,
-            delay: 0.1
-          }}
-          className="inline-block mb-4 relative z-10"
-        >
-          <div className="relative">
-            {/* Glow ring */}
-            <motion.div
-              animate={{
-                rotate: 360,
-                scale: [1, 1.1, 1]
-              }}
-              transition={{
-                rotate: { duration: 20, repeat: Infinity, ease: 'linear' },
-                scale: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
-              }}
-              className="absolute inset-0 bg-gradient-to-r from-status-info via-brand-primary to-status-info rounded-full blur-xl opacity-50"
-            />
-
-            {/* Icon container */}
-            <div className="relative bg-gradient-to-br from-status-info to-brand-primary p-4 rounded-2xl shadow-elev-3">
-              <InboxIcon className="w-8 h-8 md:w-10 md:h-10 text-white" />
+    <AdminShell>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-6xl mx-auto"
+      >
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <InboxIcon className="w-8 h-8 text-blue-500" />
+              <div>
+                <h1 className="text-3xl font-bold text-white">Inbox</h1>
+                <p className="text-slate-400 text-sm mt-1">
+                  <span className="inline-flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-blue-400" />
+                    View and manage your processed entries
+                  </span>
+                </p>
+              </div>
             </div>
-          </div>
-        </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-3xl md:text-5xl font-extrabold mb-3 relative z-10"
-        >
-          <span className="bg-gradient-to-r from-status-info via-brand-primary to-status-info bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
-            Inbox
-          </span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="text-text-secondary text-sm md:text-base font-medium mb-4 relative z-10"
-        >
-          <span className="inline-flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-status-info" />
-            View and manage your processed entries
-          </span>
-        </motion.p>
-
-        {/* Refresh button */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4 }}
-          className="relative z-10"
-        >
-          <Button
-            onClick={() => fetchReceipts(true)}
-            disabled={isRefreshing}
-            size="sm"
-            variant="ghost"
-            className="inline-flex items-center gap-2"
-          >
-            <motion.div
-              animate={isRefreshing ? { rotate: 360 } : {}}
-              transition={{ duration: 1, repeat: isRefreshing ? Infinity : 0, ease: 'linear' }}
+            <button
+              onClick={() => fetchReceipts(true)}
+              disabled={isRefreshing}
+              className="p-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg transition-colors disabled:opacity-50 border border-slate-700/50"
             >
-              <RefreshCw className="w-4 h-4" />
-            </motion.div>
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
-          </Button>
-        </motion.div>
-      </div>
+              <RefreshCw className={`w-5 h-5 text-slate-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </div>
 
       {/* Error State */}
       <AnimatePresence>
@@ -453,7 +395,8 @@ export default function InboxPage() {
           </Link>
         </motion.div>
       )}
-    </motion.div>
+      </motion.div>
+    </AdminShell>
   );
 }
 
