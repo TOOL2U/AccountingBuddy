@@ -39,12 +39,13 @@ export async function POST(request: NextRequest) {
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'balancesGetLatest',
         secret
       }),
+      redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
     });
 
     if (!response.ok) {

@@ -65,12 +65,13 @@ export async function GET(request: NextRequest) {
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'getInbox',
         secret: secret
-      })
+      }),
+      redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
     });
 
     if (!response.ok) {
@@ -164,13 +165,14 @@ export async function DELETE(request: NextRequest) {
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'deleteEntry',
         secret: secret,
         rowNumber: rowNumber
-      })
+      }),
+      redirect: 'manual'  // Don't follow 302 redirects (Apps Script returns 302 with data)
     });
 
     if (!response.ok) {

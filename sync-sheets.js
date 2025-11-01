@@ -8,13 +8,17 @@
  * - AI keywords for all options
  * - P&L sheet structure (row numbers, named ranges)
  * - Apps Script configuration
+ * - Auto-fixes named ranges to match current P&L structure
  * 
- * Usage: node sync-sheets.js [--dry-run] [--verbose]
+ * Usage: node sync-sheets.js [options]
  * 
  * Options:
- *   --dry-run    Show what would change without making changes
- *   --verbose    Show detailed logs
- *   --force      Force update even if no changes detected
+ *   --dry-run      Show what would change without making changes
+ *   --verbose      Show detailed logs including all named range positions
+ *   --force        Force update even if no changes detected
+ *   --check-only   Only check named ranges and show their current positions
+ *   --watch        Run continuously, checking for changes every N seconds
+ *   --interval=N   Set watch interval in seconds (default: 300 = 5 minutes)
  */
 
 require('dotenv').config({ path: '.env.local' });
@@ -33,6 +37,18 @@ const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
 const VERBOSE = args.includes('--verbose');
 const FORCE = args.includes('--force');
+const CHECK_ONLY = args.includes('--check-only');
+const WATCH_MODE = args.includes('--watch');
+
+// Get interval from --interval=N argument (default 300 seconds = 5 minutes)
+let WATCH_INTERVAL = 300; // seconds
+const intervalArg = args.find(arg => arg.startsWith('--interval='));
+if (intervalArg) {
+  const parsedInterval = parseInt(intervalArg.split('=')[1]);
+  if (!isNaN(parsedInterval) && parsedInterval > 0) {
+    WATCH_INTERVAL = parsedInterval;
+  }
+}
 
 // Color codes for terminal output
 const colors = {
@@ -313,45 +329,212 @@ async function scanPnLSheet(sheets) {
 }
 
 // ============================================================================
-// Phase 3: Detect Named Ranges
+// Phase 3: Auto-Fix and Validate Named Ranges
 // ============================================================================
 
-async function scanNamedRanges(sheets) {
-  log('\n🏷️  Phase 3: Scanning named ranges...', 'bright');
+async function autoFixAndScanNamedRanges(sheets, pnlStructure) {
+  log('\n🏷️  Phase 3: Auto-fixing and validating named ranges...', 'bright');
   
-  const response = await sheets.spreadsheets.get({
+  // Get sheet metadata
+  const spreadsheet = await sheets.spreadsheets.get({
     spreadsheetId: SPREADSHEET_ID,
     includeGridData: false
   });
   
-  const namedRanges = response.data.namedRanges || [];
+  const pnlSheet = spreadsheet.data.sheets.find(s => 
+    s.properties.title === 'P&L (DO NOT EDIT)'
+  );
   
-  const pnlRelatedRanges = namedRanges.filter(nr => {
-    const name = nr.name || '';
-    return name.toLowerCase().includes('month') || 
-           name.toLowerCase().includes('year') ||
-           name.toLowerCase().includes('revenue') ||
-           name.toLowerCase().includes('overhead') ||
-           name.toLowerCase().includes('gop') ||
-           name.toLowerCase().includes('ebitda');
-  });
+  if (!pnlSheet) {
+    error('P&L (DO NOT EDIT) sheet not found!');
+    return {};
+  }
   
-  const rangeMap = {};
-  pnlRelatedRanges.forEach(nr => {
-    const range = nr.range;
-    const rowIndex = range.startRowIndex + 1; // Convert to 1-based
-    rangeMap[nr.name] = {
-      row: rowIndex,
-      sheet: range.sheetId
+  const sheetId = pnlSheet.properties.sheetId;
+  const namedRanges = spreadsheet.data.namedRanges || [];
+  
+  // Get current named range positions
+  const namedRangeMap = {};
+  namedRanges.forEach(nr => {
+    namedRangeMap[nr.name] = {
+      namedRangeId: nr.namedRangeId,
+      currentRow: nr.range.startRowIndex + 1,
+      currentCol: nr.range.startColumnIndex,
+      sheetId: nr.range.sheetId
     };
   });
   
-  info(`Found ${pnlRelatedRanges.length} P&L-related named ranges`);
+  // Find actual metric rows from P&L structure
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: "'P&L (DO NOT EDIT)'!A1:A100",
+  });
   
-  if (VERBOSE) {
-    Object.entries(rangeMap).forEach(([name, data]) => {
-      verbose(`  ${name} → Row ${data.row}`);
+  const values = response.data.values || [];
+  
+  let totalRevenueRow = null;
+  let totalOverheadRow = null;
+  let gopRow = null;
+  let ebitdaMarginRow = null;
+  let propertyPersonRow = null;
+  
+  values.forEach((row, index) => {
+    const cellValue = (row[0] || '').trim();
+    const upperValue = cellValue.toUpperCase();
+    
+    if (upperValue === 'TOTAL REVENUE') totalRevenueRow = index + 1;
+    if (upperValue.includes('TOTAL OVERHEAD') && upperValue.includes('EXPENSE')) totalOverheadRow = index + 1;
+    if (upperValue.includes('GROSS OPERATING PROFIT') || (upperValue.includes('GOP') && upperValue.includes('EBITDA'))) gopRow = index + 1;
+    if (upperValue === 'EBITDA MARGIN' || (upperValue.includes('EBITDA') && upperValue.includes('MARGIN'))) ebitdaMarginRow = index + 1;
+    if (upperValue.includes('TOTAL PROPERTY') && upperValue.includes('PERSON')) propertyPersonRow = index + 1;
+  });
+  
+  verbose(`Detected metric rows: Revenue=${totalRevenueRow}, Overhead=${totalOverheadRow}, GOP=${gopRow}, EBITDA=${ebitdaMarginRow}, Property=${propertyPersonRow}`);
+  
+  // Define correct ranges
+  const monthCol = 14; // Column O
+  const yearCol = 16;  // Column Q
+  
+  const requiredRanges = [
+    { name: 'Month_Total_Revenue', row: totalRevenueRow, col: monthCol },
+    { name: 'Year_Total_Revenue', row: totalRevenueRow, col: yearCol },
+    ...(totalOverheadRow ? [
+      { name: 'Month_Total_Overheads', row: totalOverheadRow, col: monthCol },
+      { name: 'Year_Total_Overheads', row: totalOverheadRow, col: yearCol },
+    ] : []),
+    { name: 'Month_GOP', row: gopRow, col: monthCol },
+    { name: 'Year_GOP', row: gopRow, col: yearCol },
+    { name: 'Month_EBITDA_Margin', row: ebitdaMarginRow, col: monthCol },
+    { name: 'Year_EBITDA_Margin', row: ebitdaMarginRow, col: yearCol },
+    ...(propertyPersonRow ? [
+      { name: 'Month_Property_Person_Expense', row: propertyPersonRow, col: monthCol },
+      { name: 'Year_Property_Person_Expense', row: propertyPersonRow, col: yearCol },
+    ] : []),
+  ];
+  
+  // Check for updates needed
+  const updates = [];
+  
+  for (const required of requiredRanges) {
+    const current = namedRangeMap[required.name];
+    
+    if (!current) {
+      verbose(`Named range ${required.name} not found - will create`);
+      updates.push({ action: 'create', ...required });
+    } else if (current.currentRow !== required.row || current.currentCol !== required.col) {
+      const oldCell = String.fromCharCode(65 + current.currentCol) + current.currentRow;
+      const newCell = String.fromCharCode(65 + required.col) + required.row;
+      verbose(`Named range ${required.name}: ${oldCell} → ${newCell}`);
+      updates.push({
+        action: 'update',
+        namedRangeId: current.namedRangeId,
+        ...required
+      });
+    }
+  }
+  
+  // Apply updates if needed
+  if (updates.length > 0) {
+    info(`Updating ${updates.length} named range(s) to match current P&L structure...`);
+    
+    if (!DRY_RUN) {
+      const requests = updates.map(update => {
+        if (update.action === 'update') {
+          return {
+            updateNamedRange: {
+              namedRange: {
+                namedRangeId: update.namedRangeId,
+                name: update.name,
+                range: {
+                  sheetId: sheetId,
+                  startRowIndex: update.row - 1,
+                  endRowIndex: update.row,
+                  startColumnIndex: update.col,
+                  endColumnIndex: update.col + 1
+                }
+              },
+              fields: 'range'
+            }
+          };
+        } else {
+          return {
+            addNamedRange: {
+              namedRange: {
+                name: update.name,
+                range: {
+                  sheetId: sheetId,
+                  startRowIndex: update.row - 1,
+                  endRowIndex: update.row,
+                  startColumnIndex: update.col,
+                  endColumnIndex: update.col + 1
+                }
+              }
+            }
+          };
+        }
+      });
+      
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: SPREADSHEET_ID,
+        requestBody: { requests }
+      });
+      
+      success(`Auto-fixed ${updates.length} named range(s)`);
+      
+      // Show what was updated
+      updates.forEach(u => {
+        const newCell = String.fromCharCode(65 + u.col) + u.row;
+        if (u.action === 'update') {
+          const oldCell = String.fromCharCode(65 + namedRangeMap[u.name].currentCol) + namedRangeMap[u.name].currentRow;
+          verbose(`  ${u.name}: ${oldCell} → ${newCell}`);
+        } else {
+          verbose(`  ${u.name}: Created at ${newCell}`);
+        }
+      });
+    } else {
+      info('Would update named ranges (dry-run mode)');
+      updates.forEach(u => {
+        const newCell = String.fromCharCode(65 + u.col) + u.row;
+        if (u.action === 'update') {
+          const oldCell = String.fromCharCode(65 + namedRangeMap[u.name].currentCol) + namedRangeMap[u.name].currentRow;
+          info(`  Would update ${u.name}: ${oldCell} → ${newCell}`);
+        } else {
+          info(`  Would create ${u.name} at ${newCell}`);
+        }
+      });
+    }
+  } else {
+    success('All named ranges are correct');
+  }
+  
+  // If VERBOSE or CHECK_ONLY, show all named ranges
+  if (VERBOSE || CHECK_ONLY) {
+    log('\n📋 Current Named Ranges:', 'cyan');
+    requiredRanges.forEach(r => {
+      const cell = String.fromCharCode(65 + r.col) + r.row;
+      const current = namedRangeMap[r.name];
+      if (current) {
+        const currentCell = String.fromCharCode(65 + current.currentCol) + current.currentRow;
+        const status = (current.currentRow === r.row && current.currentCol === r.col) ? '✓' : '✗';
+        console.log(`   ${status} ${r.name.padEnd(35)} → ${cell}${currentCell !== cell ? ` (was ${currentCell})` : ''}`);
+      } else {
+        console.log(`   ✗ ${r.name.padEnd(35)} → ${cell} (NOT FOUND)`);
+      }
     });
+    console.log('');
+  }
+  
+  // Return final range map
+  const rangeMap = {};
+  requiredRanges.forEach(r => {
+    rangeMap[r.name] = {
+      row: r.row,
+      sheet: sheetId
+    };
+  });
+  
+  if (!CHECK_ONLY) {
+    info(`Validated ${Object.keys(rangeMap).length} P&L-related named ranges`);
   }
   
   return rangeMap;
@@ -866,6 +1049,15 @@ async function main() {
     if (VERBOSE) {
       info('📢 Verbose mode enabled');
     }
+    
+    if (CHECK_ONLY) {
+      info('🔍 CHECK ONLY MODE - Will only display named ranges');
+    }
+    
+    if (WATCH_MODE) {
+      info(`👁️  WATCH MODE - Monitoring every ${WATCH_INTERVAL} seconds`);
+      info('   Press Ctrl+C to stop\n');
+    }
 
     // Setup Google Sheets API
     const sheets = await setupGoogleSheetsAPI();
@@ -877,8 +1069,16 @@ async function main() {
     // Phase 2: Scan P&L sheet
     const pnlStructure = await scanPnLSheet(sheets);
 
-    // Phase 3: Scan named ranges
-    const namedRanges = await scanNamedRanges(sheets);
+    // Phase 3: Auto-fix and validate named ranges
+    const namedRanges = await autoFixAndScanNamedRanges(sheets, pnlStructure);
+    
+    // If CHECK_ONLY mode, exit here
+    if (CHECK_ONLY) {
+      log('\n' + '='.repeat(70), 'green');
+      success('✅ Named ranges check complete!');
+      log('='.repeat(70) + '\n', 'green');
+      return;
+    }
 
     // Phase 4: Compare with current config
     const changes = compareWithCurrentConfig(fetchedData);
@@ -935,10 +1135,171 @@ async function main() {
   }
 }
 
-// Run the script
-if (require.main === module) {
-  main();
+// ============================================================================
+// Watch Mode - Continuous Monitoring
+// ============================================================================
+
+async function runWatchMode() {
+  let lastCheck = new Date();
+  let checkCount = 0;
+  
+  log('\n' + '='.repeat(70), 'bright');
+  log('  👁️  WATCH MODE ACTIVATED', 'bright');
+  log('='.repeat(70), 'bright');
+  log(`  Checking every ${WATCH_INTERVAL} seconds`, 'cyan');
+  log(`  Press Ctrl+C to stop`, 'yellow');
+  log('='.repeat(70) + '\n', 'bright');
+  
+  // Track previous state to detect actual changes
+  let previousState = {
+    namedRangesHash: null,
+    dropdownsHash: null,
+    pnlStructureHash: null
+  };
+  
+  const runCheck = async () => {
+    checkCount++;
+    const now = new Date();
+    
+    log('\n' + '-'.repeat(70), 'cyan');
+    log(`  Check #${checkCount} - ${now.toLocaleTimeString()}`, 'cyan');
+    log('-'.repeat(70) + '\n', 'cyan');
+    
+    try {
+      // Setup Google Sheets API
+      const sheets = await setupGoogleSheetsAPI();
+      
+      if (checkCount === 1) {
+        success('Connected to Google Sheets API');
+      }
+
+      // Phase 1: Scan Data sheet
+      const fetchedData = await scanDataSheet(sheets);
+      
+      // Create hash of dropdown data
+      const dropdownsHash = JSON.stringify({
+        typeOfOperation: fetchedData.typeOfOperation.sort(),
+        properties: fetchedData.properties.sort(),
+        typeOfPayment: fetchedData.typeOfPayment.sort()
+      });
+
+      // Phase 2: Scan P&L sheet
+      const pnlStructure = await scanPnLSheet(sheets);
+      
+      // Create hash of P&L structure
+      const pnlStructureHash = JSON.stringify({
+        propertyPersonStart: pnlStructure.propertyPersonStart,
+        propertyPersonEnd: pnlStructure.propertyPersonEnd,
+        overheadStart: pnlStructure.overheadStart,
+        overheadEnd: pnlStructure.overheadEnd
+      });
+
+      // Phase 3: Auto-fix and validate named ranges
+      const namedRanges = await autoFixAndScanNamedRanges(sheets, pnlStructure);
+      
+      // Create hash of named ranges
+      const namedRangesHash = JSON.stringify(namedRanges);
+      
+      // Detect changes
+      const changesDetected = [];
+      
+      if (previousState.namedRangesHash && previousState.namedRangesHash !== namedRangesHash) {
+        changesDetected.push('Named Ranges');
+      }
+      
+      if (previousState.dropdownsHash && previousState.dropdownsHash !== dropdownsHash) {
+        changesDetected.push('Dropdown Options');
+      }
+      
+      if (previousState.pnlStructureHash && previousState.pnlStructureHash !== pnlStructureHash) {
+        changesDetected.push('P&L Structure');
+      }
+      
+      // Update previous state
+      previousState = {
+        namedRangesHash,
+        dropdownsHash,
+        pnlStructureHash
+      };
+      
+      if (changesDetected.length > 0) {
+        warning(`⚡ CHANGES DETECTED: ${changesDetected.join(', ')}`);
+        
+        // Run full sync
+        info('Running full sync...');
+        
+        const changes = compareWithCurrentConfig(fetchedData);
+        const totalChanges =
+          changes.typeOfOperation.added.length + changes.typeOfOperation.removed.length +
+          changes.properties.added.length + changes.properties.removed.length +
+          changes.typeOfPayment.added.length + changes.typeOfPayment.removed.length;
+
+        if (totalChanges > 0 && !DRY_RUN) {
+          const generatedKeywords = await generateKeywordsForNewItems(changes);
+          updateConfigFiles(fetchedData, changes, generatedKeywords, pnlStructure);
+          const appsScriptModified = updateAppsScript(pnlStructure, namedRanges);
+          generateSyncReport(changes, pnlStructure, namedRanges, appsScriptModified);
+          
+          success(`✅ Sync complete! Updated ${totalChanges} items`);
+          if (appsScriptModified) {
+            warning('⚠️  Apps Script was modified - remember to deploy!');
+          }
+        }
+      } else {
+        success(`✅ No changes detected - everything in sync`);
+      }
+      
+      const nextCheck = new Date(now.getTime() + (WATCH_INTERVAL * 1000));
+      info(`Next check at ${nextCheck.toLocaleTimeString()}`);
+      
+      lastCheck = now;
+      
+    } catch (err) {
+      error(`Error during check: ${err.message}`);
+      if (VERBOSE) {
+        console.error(err);
+      }
+      warning('Will retry on next interval...');
+    }
+  };
+  
+  // Run initial check
+  await runCheck();
+  
+  // Set up interval for subsequent checks
+  const intervalId = setInterval(async () => {
+    await runCheck();
+  }, WATCH_INTERVAL * 1000);
+  
+  // Handle graceful shutdown
+  process.on('SIGINT', () => {
+    log('\n\n' + '='.repeat(70), 'yellow');
+    warning('⏹️  Stopping watch mode...');
+    log('='.repeat(70) + '\n', 'yellow');
+    
+    clearInterval(intervalId);
+    
+    info(`Completed ${checkCount} checks`);
+    info(`Started: ${lastCheck.toLocaleString()}`);
+    info(`Stopped: ${new Date().toLocaleString()}`);
+    
+    log('\n' + colors.green + '✅ Goodbye!' + colors.reset + '\n');
+    process.exit(0);
+  });
 }
 
-module.exports = { main };
+// ============================================================================
+// Entry Point
+// ============================================================================
+
+// Run the script
+if (require.main === module) {
+  if (WATCH_MODE) {
+    runWatchMode();
+  } else {
+    main();
+  }
+}
+
+module.exports = { main, runWatchMode };
 

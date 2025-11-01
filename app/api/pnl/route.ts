@@ -78,10 +78,11 @@ export async function GET(request: NextRequest) {
     console.log('🔐 Using secret (first 10 chars):', secret?.substring(0, 10));
 
     // Fetch data from Apps Script endpoint
+    // IMPORTANT: Use text/plain to avoid CORS preflight redirect (Google Apps Script requirement)
     const response = await fetch(pnlUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
         action: 'getPnL',
